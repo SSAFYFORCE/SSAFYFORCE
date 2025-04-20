@@ -16,10 +16,10 @@ public class ProblemAlgorithm {
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "problem_id")
+    @JoinColumn(name = "problem_id", nullable = false)
     private Problem problem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "algorithm_id")
+    @JoinColumn(name = "algorithm_id", nullable = false)
     private Algorithm algorithm;
 }

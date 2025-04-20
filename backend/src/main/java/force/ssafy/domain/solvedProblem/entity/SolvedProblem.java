@@ -20,7 +20,7 @@ public class SolvedProblem {
 //    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="problem_id")
+    @JoinColumn(name="problem_id", nullable = false)
     private Problem problem;
     private LocalDateTime solvedDate;
     private LanguageType language;

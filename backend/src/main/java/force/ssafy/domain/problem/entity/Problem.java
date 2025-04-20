@@ -19,7 +19,8 @@ public class Problem {
     private long id;
 
     @Column(nullable = false)
-    private long problem_number;
+    private long problemNumber;
+    @Column(nullable = false)
     private String title;
 
     // Enum 값을 문자열로 저장(EnumType.ORDINAL 은 enum 클래스의 순서가 바뀌었을 경우 치명적)
