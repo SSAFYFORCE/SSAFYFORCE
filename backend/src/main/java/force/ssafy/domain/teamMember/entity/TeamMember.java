@@ -1,5 +1,7 @@
 package force.ssafy.domain.teamMember.entity;
 
+import force.ssafy.domain.member.entity.Member;
+import force.ssafy.domain.member.entity.MemberRole;
 import force.ssafy.domain.team.entity.Team;
 import jakarta.persistence.*;
 
@@ -23,6 +25,6 @@ public class TeamMember {
     private String joinedAt;
 
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private MemberRole role;
+    @Enumerated(EnumType.STRING)    // 멤버 기본 역할은 팀원
+    private MemberRole role = MemberRole.MEMBER;
 }

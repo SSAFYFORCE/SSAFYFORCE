@@ -4,6 +4,7 @@ import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,6 +24,6 @@ public class Team {
     private LocalDateTime updatedAt;
     private String profileImage;
 
-    @OneToMany(mappedBy = "member")
-    private List<TeamMember> teamMembers;
+    @OneToMany(mappedBy = "team")
+    private List<TeamMember> teamMembers = new ArrayList<>();
 }
