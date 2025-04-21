@@ -1,5 +1,6 @@
 package force.ssafy.domain.member.entity;
 
+import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,6 +11,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "members")
@@ -53,6 +56,9 @@ public class Member {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "member")
+    private List<TeamMember> teamMembers = new ArrayList<>();
 
     @Builder
     public Member(String nickname, String password, String name, Integer classLevel,
