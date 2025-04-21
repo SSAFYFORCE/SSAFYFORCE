@@ -20,6 +20,7 @@ public class Problem {
 
     @Column(nullable = false)
     private long problemNumber;
+    // pr용 테스트
     @Column(nullable = false)
     private String title;
 
