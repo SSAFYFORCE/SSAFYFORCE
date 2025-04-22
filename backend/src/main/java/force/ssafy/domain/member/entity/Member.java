@@ -1,5 +1,6 @@
 package force.ssafy.domain.member.entity;
 
+import force.ssafy.domain.solvedProblem.entity.SolvedProblem;
 import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -59,6 +60,9 @@ public class Member {
 
     @OneToMany(mappedBy = "member")
     private List<TeamMember> teamMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<SolvedProblem> SolvedProblems = new ArrayList<>();
 
     @Builder
     public Member(String nickname, String password, String name, Integer classLevel,
