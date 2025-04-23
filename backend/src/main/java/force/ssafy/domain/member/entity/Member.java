@@ -31,8 +31,8 @@ public class Member {
     @Column(nullable = false, length = 30)
     private String name;
 
-    @Column(name = "class", nullable = false)
-    private Integer classLevel;
+    @Column(name = "classNum", nullable = false)
+    private Integer classLevel; //classNum으로 바꾸기
 
     @Column(length = 200)
     private String profileImage;
