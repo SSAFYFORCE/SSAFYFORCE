@@ -4,7 +4,6 @@ import force.ssafy.domain.solvedProblem.controller.dto.response.SolvedProblemRes
 import force.ssafy.domain.solvedProblem.entity.SolvedProblem;
 import force.ssafy.domain.solvedProblem.repository.SolvedProblemRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,7 +32,7 @@ public class SolvedProblemService {
                                                    LocalDateTime endDate,
                                                    Pageable pageable) {
         if (memberId != null && startDate != null && endDate != null) {
-            return solvedProblemRepository.findByMemberIdAndSolvedDate(memberId, startDate, endDate, pageable);
+            return solvedProblemRepository.findByMemberIdAndSolvedDateBetween(memberId, startDate, endDate, pageable);
         } else if (memberId != null) {
             return solvedProblemRepository.findByMemberId(memberId, pageable);
         } else if (startDate != null && endDate != null) {

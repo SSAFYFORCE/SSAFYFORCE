@@ -19,7 +19,7 @@ public interface SolvedProblemRepository extends JpaRepository<SolvedProblem, Lo
             LocalDateTime endDate,
             Pageable pageable);
 
-    Page<SolvedProblem> findByMemberIdAndSolvedDate(
+    Page<SolvedProblem> findByMemberIdAndSolvedDateBetween(
             Long memberId,
             LocalDateTime startDate,
             LocalDateTime endDate,
