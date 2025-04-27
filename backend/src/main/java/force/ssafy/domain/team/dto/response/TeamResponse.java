@@ -10,12 +10,12 @@ import java.util.List;
 @Builder
 public class TeamResponse {
 
-    private int group;
+    private String name;
     private List<TeamMemberResponse> teamMembers;
 
-    public static TeamResponse from(int group, List<TeamMemberResponse> teamMembers) {
+    public static TeamResponse from(String name, List<TeamMemberResponse> teamMembers) {
         return TeamResponse.builder()
-                .group(group)
+                .name(name)
                 .teamMembers(teamMembers)
                 .build();
     }

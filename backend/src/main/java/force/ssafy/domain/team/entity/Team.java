@@ -2,12 +2,14 @@ package force.ssafy.domain.team.entity;
 
 import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 public class Team {
 
     @Id
