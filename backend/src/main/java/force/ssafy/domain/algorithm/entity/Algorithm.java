@@ -2,11 +2,16 @@ package force.ssafy.domain.algorithm.entity;
 
 import force.ssafy.domain.problemAlgorithm.entity.ProblemAlgorithm;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Algorithm {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
