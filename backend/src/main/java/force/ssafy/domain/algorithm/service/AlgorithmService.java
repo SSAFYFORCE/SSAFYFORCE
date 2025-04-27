@@ -49,6 +49,7 @@ public class AlgorithmService {
     }
 
     public List<AlgorithmResponse> findAll() {
+        log.info("AlgorithmResponse 호출");
         List<AlgorithmResponse> algorithmResponses = new ArrayList<>();
 
         List<Algorithm> algorithms = algorithmRepository.findAll();

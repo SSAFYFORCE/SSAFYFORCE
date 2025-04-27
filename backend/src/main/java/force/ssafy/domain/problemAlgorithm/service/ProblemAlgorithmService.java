@@ -31,6 +31,7 @@ public class ProblemAlgorithmService {
     }
 
     public List<ProblemAlgorithm> findEntityByProblemId(Long problemId){
+        log.info("findEntityByProblemId 호출");
         return problemAlgorithmRepository.findByProblem_Id(problemId);
     }
 }

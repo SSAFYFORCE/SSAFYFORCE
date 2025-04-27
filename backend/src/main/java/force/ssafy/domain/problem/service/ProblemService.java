@@ -75,6 +75,7 @@ public class ProblemService {
     }
 
     public ProblemResponse findByProblemId(Long problemId) {
+        log.info("findByProblemId 호출");
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new EntityNotFoundException("해당하는 문제가 없습니다."));
         List<AlgorithmResponse> algorithmResponses = new ArrayList<>();
