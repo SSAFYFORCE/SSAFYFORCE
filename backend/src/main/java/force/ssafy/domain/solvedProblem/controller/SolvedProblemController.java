@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/solvedProblems")
+@RequestMapping("/api/v1/solved-problems")
 public class SolvedProblemController {
     private final SolvedProblemService solvedProblemService;
     private final DateRangeValidator dateRangeValidator;
