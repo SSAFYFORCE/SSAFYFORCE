@@ -5,8 +5,6 @@ import force.ssafy.domain.member.entity.MemberRole;
 import force.ssafy.domain.team.entity.Team;
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 public class TeamMember {
 

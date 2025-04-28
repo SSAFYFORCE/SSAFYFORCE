@@ -27,7 +27,7 @@ public class TeamService {
     /**
      * 해당하는 teamId 에 대한 팀명과 소속 팀원들을 가져오는 메서드
      * @param teamId
-     * @return
+     * @return TeamResponse
      */
     public TeamResponse findTeamDetail(Long teamId) {
         log.info("findTeamDetail 실행");

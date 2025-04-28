@@ -15,7 +15,7 @@ public class TeamMemberRepository {
 
     public List<Member> findTeamMemberById(Long teamId) {
         return em.createQuery(
-                        "SELECT tm.member FROM TeamMember tm WHERE tm.team.id = :teamId", Member.class)
+                        "SELECT tm.member FROM TeamMember tm JOIN FETCH tm.member WHERE tm.team.id = :teamId", Member.class)
                 .setParameter("teamId", teamId)
                 .getResultList();
     }
