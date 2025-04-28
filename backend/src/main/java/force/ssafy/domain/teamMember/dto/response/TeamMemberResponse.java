@@ -1,6 +1,7 @@
 package force.ssafy.domain.teamMember.dto.response;
 
 import force.ssafy.domain.member.entity.Member;
+import force.ssafy.domain.teamMember.dto.TeamMemberDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,12 +14,12 @@ public class TeamMemberResponse {
     private String name;
     private String profileImage;
 
-    public static TeamMemberResponse from(Member member) {
+    public static TeamMemberResponse from(TeamMemberDto teamMemberDto) {
         return TeamMemberResponse.builder()
-                .id(member.getId())
-                .nickname(member.getNickname())
-                .name(member.getName())
-                .profileImage(member.getProfileImage())
+                .id(teamMemberDto.getId())
+                .nickname(teamMemberDto.getNickname())
+                .name(teamMemberDto.getName())
+                .profileImage(teamMemberDto.getProfileImage())
                 .build();
     }
 }

@@ -24,7 +24,6 @@ public class TeamController {
      */
     @GetMapping("/{teamId}")
     public ResponseEntity<TeamResponse> teamDetail(@PathVariable("teamId") Long teamId) {
-        TeamResponse teamDetail = teamService.findTeamDetail(teamId);
-        return ResponseEntity.ok().body(teamDetail);
+        return ResponseEntity.ok().body(teamService.findTeamDetail(teamId));
     }
 }

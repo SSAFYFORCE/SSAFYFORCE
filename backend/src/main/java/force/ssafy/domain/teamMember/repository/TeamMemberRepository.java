@@ -1,6 +1,7 @@
 package force.ssafy.domain.teamMember.repository;
 
 import force.ssafy.domain.member.entity.Member;
+import force.ssafy.domain.teamMember.dto.TeamMemberDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -13,9 +14,14 @@ public class TeamMemberRepository {
     @PersistenceContext
     private EntityManager em;
 
-    public List<Member> findTeamMemberById(Long teamId) {
+    public List<TeamMemberDto> findTeamMemberDtoByTeamId(Long teamId) {
         return em.createQuery(
-                        "SELECT tm.member FROM TeamMember tm JOIN FETCH tm.member WHERE tm.team.id = :teamId", Member.class)
+                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.nickname, m.name, m.profileImage) " +
+                                "FROM TeamMember tm " +
+                                "JOIN tm.member m " +
+                                "WHERE tm.team.id = :teamId",
+                        TeamMemberDto.class
+                )
                 .setParameter("teamId", teamId)
                 .getResultList();
     }

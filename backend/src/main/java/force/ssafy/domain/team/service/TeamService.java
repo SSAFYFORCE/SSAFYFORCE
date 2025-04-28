@@ -4,6 +4,7 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.team.dto.response.TeamResponse;
 import force.ssafy.domain.team.entity.Team;
 import force.ssafy.domain.team.repository.TeamRepository;
+import force.ssafy.domain.teamMember.dto.TeamMemberDto;
 import force.ssafy.domain.teamMember.dto.response.TeamMemberResponse;
 import force.ssafy.domain.teamMember.repository.TeamMemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +34,13 @@ public class TeamService {
         log.info("findTeamDetail 실행");
         Team team = teamRepository.findById(teamId).get();
 
-        List<Member> members = teamMemberRepository.findTeamMemberById(teamId);
+        List<TeamMemberDto> members = teamMemberRepository.findTeamMemberDtoByTeamId(teamId);
 
         // Member → MemberResponse 변환
         List<TeamMemberResponse> memberResponses = members.stream()
                 .map(TeamMemberResponse::from)
                 .toList();
 
-        // 회원에서의 group 컬럼이 team 테이블 중 어떤 컬럼인지?
         return TeamResponse.from(team.getName(), memberResponses);
     }
 
