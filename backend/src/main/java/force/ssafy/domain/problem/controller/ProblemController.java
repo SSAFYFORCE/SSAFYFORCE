@@ -1,7 +1,7 @@
 package force.ssafy.domain.problem.controller;
 
-import force.ssafy.domain.problem.dto.request.ProblemRequest;
-import force.ssafy.domain.problem.dto.response.ProblemResponse;
+import force.ssafy.domain.problem.dto.request.ProblemCreateRequest;
+import force.ssafy.domain.problem.dto.response.ProblemGetResponse;
 import force.ssafy.domain.problem.service.ProblemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,19 +17,19 @@ public class ProblemController {
 
     private final ProblemService problemService;
 
-    @GetMapping(value = "")
-    public ResponseEntity<List<ProblemResponse>> selectAllProblems() {
-        return ResponseEntity.ok().body(problemService.selectAllProblems());
+    @GetMapping
+    public ResponseEntity<List<ProblemGetResponse>> findAll() {
+        return ResponseEntity.ok().body(problemService.findAll());
     }
 
-    @PostMapping(value = "")
-    public ResponseEntity<Void> addProblem(@RequestBody ProblemRequest problemRequest) {
-        problemService.save(problemRequest);
+    @PostMapping
+    public ResponseEntity<Void> save(@RequestBody ProblemCreateRequest problemCreateRequest) {
+        problemService.save(problemCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping(value = "/{problemId}")
-    public ResponseEntity<ProblemResponse> selectOneProblem(@PathVariable Long problemId){
+    public ResponseEntity<ProblemGetResponse> findByProblemId(@PathVariable Long problemId){
         return ResponseEntity.ok().body(problemService.findByProblemId(problemId));
     }
 

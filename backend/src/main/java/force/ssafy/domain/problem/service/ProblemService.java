@@ -2,14 +2,14 @@ package force.ssafy.domain.problem.service;
 
 import force.ssafy.domain.algorithm.entity.Algorithm;
 import force.ssafy.domain.algorithm.dto.request.AlgorithmMappingRequest;
-import force.ssafy.domain.algorithm.dto.response.AlgorithmResponse;
-import force.ssafy.domain.algorithm.service.AlgorithmService;
-import force.ssafy.domain.problem.dto.request.ProblemRequest;
-import force.ssafy.domain.problem.dto.response.ProblemResponse;
+import force.ssafy.domain.algorithm.dto.response.AlgorithmGetResponse;
+import force.ssafy.domain.algorithm.repository.AlgorithmRepository;
+import force.ssafy.domain.problem.dto.request.ProblemCreateRequest;
+import force.ssafy.domain.problem.dto.response.ProblemGetResponse;
 import force.ssafy.domain.problem.entity.Problem;
 import force.ssafy.domain.problem.repository.ProblemRepository;
 import force.ssafy.domain.problemAlgorithm.entity.ProblemAlgorithm;
-import force.ssafy.domain.problemAlgorithm.service.ProblemAlgorithmService;
+import force.ssafy.domain.problemAlgorithm.repository.ProblemAlgorithmRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,30 +26,35 @@ import java.util.List;
 public class ProblemService {
 
     private final ProblemRepository problemRepository;
-    private final ProblemAlgorithmService problemAlgorithmService;
-    private final AlgorithmService algorithmService;
+    private final ProblemAlgorithmRepository problemAlgorithmRepository;
+    private final AlgorithmRepository algorithmRepository;
 
-    public List<ProblemResponse> selectAllProblems() {
+    @Transactional(readOnly = true)
+    public List<ProblemGetResponse> findAll() {
         log.info("selectAllProblems 호출");
-        List<ProblemResponse> problemResponses = new ArrayList<>();
+
+        List<ProblemGetResponse> problemGetResponses = new ArrayList<>();
 
         List<Problem> problems = problemRepository.findAll();
         for (Problem p : problems) {
-            List<AlgorithmResponse> algorithmResponses = extractAlgorithmResponseFromEntity(p.getProblemAlgorithms());
-            problemResponses.add(ProblemResponse.from(p, algorithmResponses));
+            List<AlgorithmGetResponse> algorithmGetResponses = extractAlgorithmResponseFromEntity(p.getProblemAlgorithms());
+            problemGetResponses.add(ProblemGetResponse.of(p, algorithmGetResponses));
         }
 
-        return problemResponses;
+        return problemGetResponses;
     }
 
-    public void save(ProblemRequest problemRequest) {
+    public void save(ProblemCreateRequest problemCreateRequest) {
         log.info("save 호출");
-        Problem problem = problemRequest.toEntity();
+
+        log.info("문제 DB에 저장");
+        Problem problem = problemCreateRequest.toEntity();
         problemRepository.save(problem);
 
+        log.info("문제와 알고리즘 매핑");
         List<ProblemAlgorithm> problemAlgorithms = new ArrayList<>();
-        for (AlgorithmMappingRequest algorithmMappingRequest : problemRequest.getAlgorithmMappingRequests()) {
-            Algorithm algorithm = algorithmService.findByName(algorithmMappingRequest.getName());
+        for (AlgorithmMappingRequest algorithmMappingRequest : problemCreateRequest.getAlgorithmMappingRequests()) {
+            Algorithm algorithm = algorithmRepository.findByName(algorithmMappingRequest.getName());
 
             ProblemAlgorithm problemAlgorithm = ProblemAlgorithm.builder()
                     .problem(problem)
@@ -59,33 +64,29 @@ public class ProblemService {
             problemAlgorithms.add(problemAlgorithm);
         }
 
-        problemAlgorithmService.saveAll(problemAlgorithms);
+        problemAlgorithmRepository.saveAll(problemAlgorithms);
     }
 
-
-    private List<AlgorithmResponse> extractAlgorithmResponseFromEntity(List<ProblemAlgorithm> problemAlgorithms) {
-        log.info("extractAlgorithmResponseFromEntity 호출");
-        List<AlgorithmResponse> algorithmResponses = new ArrayList<>();
-
-        for (ProblemAlgorithm problemAlgorithm : problemAlgorithms) {
-            algorithmResponses.add(AlgorithmResponse.from(problemAlgorithm.getAlgorithm()));
-        }
-
-        return algorithmResponses;
-    }
-
-    public ProblemResponse findByProblemId(Long problemId) {
+    @Transactional(readOnly = true)
+    public ProblemGetResponse findByProblemId(Long problemId) {
         log.info("findByProblemId 호출");
+
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new EntityNotFoundException("해당하는 문제가 없습니다."));
-        List<AlgorithmResponse> algorithmResponses = new ArrayList<>();
 
-        List<ProblemAlgorithm> problemAlgorithms = problemAlgorithmService.findEntityByProblemId(problemId);
-        for(ProblemAlgorithm problemAlgorithm : problemAlgorithms){
-            algorithmResponses.add(AlgorithmResponse.from(problemAlgorithm.getAlgorithm()));
-        }
+        List<AlgorithmGetResponse> algorithmGetResponses = problemAlgorithmRepository.findByProblemId(problemId).stream()
+                .map(pa -> AlgorithmGetResponse.from(pa.getAlgorithm()))
+                .toList();
 
-        return ProblemResponse.from(problem, algorithmResponses);
+        return ProblemGetResponse.of(problem, algorithmGetResponses);
+    }
+
+    private List<AlgorithmGetResponse> extractAlgorithmResponseFromEntity(List<ProblemAlgorithm> problemAlgorithms) {
+        log.info("extractAlgorithmResponseFromEntity 호출");
+
+        return problemAlgorithms.stream()
+                .map(pa -> AlgorithmGetResponse.from(pa.getAlgorithm()))
+                .toList();
     }
 
 }

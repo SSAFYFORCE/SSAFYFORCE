@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface ProblemAlgorithmRepository extends JpaRepository<ProblemAlgorithm, Long> {
 
-    List<ProblemAlgorithm> findByProblem_Id(Long problemId);
+    List<ProblemAlgorithm> findByProblemId(Long problemId);
 }
