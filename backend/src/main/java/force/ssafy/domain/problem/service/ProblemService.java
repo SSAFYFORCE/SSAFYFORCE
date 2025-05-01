@@ -21,7 +21,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProblemService {
 
@@ -29,7 +29,6 @@ public class ProblemService {
     private final ProblemAlgorithmRepository problemAlgorithmRepository;
     private final AlgorithmRepository algorithmRepository;
 
-    @Transactional(readOnly = true)
     public List<ProblemGetResponse> findAll() {
         log.info("selectAllProblems 호출");
 
@@ -44,6 +43,7 @@ public class ProblemService {
         return problemGetResponses;
     }
 
+    @Transactional
     public void save(ProblemCreateRequest problemCreateRequest) {
         log.info("save 호출");
 
@@ -67,7 +67,6 @@ public class ProblemService {
         problemAlgorithmRepository.saveAll(problemAlgorithms);
     }
 
-    @Transactional(readOnly = true)
     public ProblemGetResponse findByProblemId(Long problemId) {
         log.info("findByProblemId 호출");
 

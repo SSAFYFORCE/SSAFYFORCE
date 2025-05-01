@@ -13,12 +13,13 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AlgorithmService {
 
     private final AlgorithmRepository algorithmRepository;
 
+    @Transactional
     public void addAlgorithms(List<AlgorithmCreateRequest> algorithmCreateRequests) {
         log.info("addAlgorithms 호출");
 
@@ -29,7 +30,6 @@ public class AlgorithmService {
         algorithmRepository.saveAll(algorithms);
     }
 
-    @Transactional(readOnly = true)
     public List<AlgorithmGetResponse> findAll() {
         log.info("findAll 호출");
 
