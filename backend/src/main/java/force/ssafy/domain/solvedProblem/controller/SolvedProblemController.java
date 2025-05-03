@@ -1,8 +1,8 @@
 package force.ssafy.domain.solvedProblem.controller;
 
 import force.ssafy.domain.solvedProblem.controller.dto.response.SolvedProblemResponse;
-import force.ssafy.domain.solvedProblem.controller.validator.DateRangeValidator;
 import force.ssafy.domain.solvedProblem.service.SolvedProblemService;
+import force.ssafy.global.util.DateUtils;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/solved-problems")
 public class SolvedProblemController {
     private final SolvedProblemService solvedProblemService;
-    private final DateRangeValidator dateRangeValidator;
     @GetMapping
     public ResponseEntity<Page<SolvedProblemResponse>> getAllSolvedProblems(
             @RequestParam(required = false) Long memberId,
@@ -30,7 +29,7 @@ public class SolvedProblemController {
             @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime endDate,
             Pageable pageable
             ) {
-        dateRangeValidator.validateDateRange(startDate, endDate);
+        DateUtils.validateDataRange(startDate, endDate);
         return ResponseEntity.ok(solvedProblemService.getSolvedProblems(memberId, startDate, endDate, pageable));
     }
 }
