@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class MemberUpdateDto {
+public class MemberUpdateResponse {
 
     @NotBlank(message = "이름은 필수 입력값입니다.")
     @Size(max = 30, message = "이름은 30자 이하로 입력해주세요.")

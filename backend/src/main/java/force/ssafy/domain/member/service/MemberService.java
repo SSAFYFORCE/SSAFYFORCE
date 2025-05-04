@@ -1,6 +1,6 @@
 package force.ssafy.domain.member.service;
 
-import force.ssafy.domain.member.dto.request.MemberUpdateDto;
+import force.ssafy.domain.member.dto.request.MemberUpdateResponse;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
@@ -8,17 +8,35 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.exception.InvalidPasswordException;
 import force.ssafy.domain.member.exception.MemberNotFoundException;
 import force.ssafy.domain.member.repository.MemberRepository;
+import force.ssafy.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class MemberService {
+public class MemberService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Override
+    public CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Member member = memberRepository.findByNickname(username)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+
+        return new CustomUserDetails(member);
+    }
+
+    public CustomUserDetails loadUserById(Long id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new MemberNotFoundException(id));
+
+        return new CustomUserDetails(member);
+    }
 
     /**
      * 회원 정보 조회
@@ -26,7 +44,7 @@ public class MemberService {
     @Transactional(readOnly = true)
     public MemberDto getMemberInfo(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
 
         return MemberDto.builder()
                 .id(member.getId())
@@ -55,9 +73,10 @@ public class MemberService {
      * 회원 정보 수정
      */
     @Transactional
-    public void updateMemberInfo(Long memberId, MemberUpdateDto updateDto) {
+    public void updateMemberInfo(Long memberId, MemberUpdateResponse updateDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다."));
+
 
         member.updateProfile(
                 updateDto.getName(),

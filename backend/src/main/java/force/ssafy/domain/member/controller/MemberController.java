@@ -1,6 +1,6 @@
 package force.ssafy.domain.member.controller;
 
-import force.ssafy.domain.member.dto.request.MemberUpdateDto;
+import force.ssafy.domain.member.dto.request.MemberUpdateResponse;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
@@ -44,7 +44,7 @@ public class MemberController {
     @PatchMapping("/me")
     public ResponseEntity<Void> updateMemberInfo(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody MemberUpdateDto updateDto) {
+            @Valid @RequestBody MemberUpdateResponse updateDto) {
         memberService.updateMemberInfo(userDetails.getMemberId(), updateDto);
         return ResponseEntity.ok().build();
     }
