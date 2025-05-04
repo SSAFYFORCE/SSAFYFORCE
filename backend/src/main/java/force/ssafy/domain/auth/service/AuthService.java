@@ -3,6 +3,7 @@ package force.ssafy.domain.auth.service;
 import force.ssafy.domain.auth.dto.request.SignInDto;
 import force.ssafy.domain.auth.dto.request.SignUpDto;
 import force.ssafy.domain.auth.dto.response.TokenDto;
+import force.ssafy.domain.auth.exception.AuthError;
 import force.ssafy.domain.auth.exception.AuthenticationException;
 import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.exception.DuplicateNicknameException;
@@ -33,7 +34,7 @@ public class AuthService {
     public Member signUp(SignUpDto signUpDto) {
         // 닉네임 중복 확인
         if (memberRepository.existsByNickname(signUpDto.getNickname())) {
-            throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+            throw new DuplicateNicknameException(signUpDto.getNickname());
         }
 
         // solved.ac 인증 확인
@@ -70,7 +71,7 @@ public class AuthService {
 
         // 비밀번호 확인
         if (!passwordEncoder.matches(signInDto.getPassword(), member.getPassword())) {
-            throw new AuthenticationException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            throw new AuthenticationException(AuthError.INVALID_USERNAME_AND_PASSWORD);
         }
 
         // 인증 확인
