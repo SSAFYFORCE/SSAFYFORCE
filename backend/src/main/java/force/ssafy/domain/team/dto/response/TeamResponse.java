@@ -13,7 +13,7 @@ public class TeamResponse {
     private String name;
     private List<TeamMemberResponse> teamMembers;
 
-    public static TeamResponse from(String name, List<TeamMemberResponse> teamMembers) {
+    public static TeamResponse of(String name, List<TeamMemberResponse> teamMembers) {
         return TeamResponse.builder()
                 .name(name)
                 .teamMembers(teamMembers)

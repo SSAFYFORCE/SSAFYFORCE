@@ -23,7 +23,7 @@ public class TeamController {
      * @return TeamResponse
      */
     @GetMapping("/{teamId}")
-    public ResponseEntity<TeamResponse> teamDetail(@PathVariable("teamId") Long teamId) {
+    public ResponseEntity<TeamResponse> teamDetail(@PathVariable Long teamId) {
         return ResponseEntity.ok().body(teamService.findTeamDetail(teamId));
     }
 }

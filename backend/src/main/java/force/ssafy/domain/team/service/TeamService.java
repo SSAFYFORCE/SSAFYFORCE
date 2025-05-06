@@ -41,7 +41,7 @@ public class TeamService {
                 .map(TeamMemberResponse::from)
                 .toList();
 
-        return TeamResponse.from(team.getName(), memberResponses);
+        return TeamResponse.of(team.getName(), memberResponses);
     }
 
 }

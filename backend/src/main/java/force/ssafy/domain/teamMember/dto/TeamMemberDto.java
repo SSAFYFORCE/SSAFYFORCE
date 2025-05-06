@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class TeamMemberDto {
-    private Long id;
+    private long id;
     private String nickname;
     private String name;
     private String profileImage;
