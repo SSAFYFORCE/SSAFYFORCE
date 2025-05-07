@@ -3,8 +3,13 @@ package force.ssafy.domain.problemAlgorithm.entity;
 import force.ssafy.domain.algorithm.entity.Algorithm;
 import force.ssafy.domain.problem.entity.Problem;
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class ProblemAlgorithm {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
