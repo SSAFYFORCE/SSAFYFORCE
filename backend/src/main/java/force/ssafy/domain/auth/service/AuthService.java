@@ -50,7 +50,6 @@ public class AuthService {
         Member member = Member.builder()
                 .password(passwordEncoder.encode(signUpDto.getPassword()))
                 .name(signUpDto.getName())
-                .classLevel(signUpDto.getClassLevel())
                 .encryptionKey(encryptionKey)
                 .solvedAcId(signUpDto.getSolvedAcId())
                 .build();

@@ -49,7 +49,6 @@ public class MemberService implements UserDetailsService {
         return MemberDto.builder()
                 .id(member.getId())
                 .name(member.getName())
-                .classLevel(member.getClassLevel())
                 .profileImage(member.getProfileImage())
                 .createdAt(member.getCreatedAt())
                 .solvedAcId(member.getSolvedAcId())
@@ -80,7 +79,6 @@ public class MemberService implements UserDetailsService {
 
         member.updateProfile(
                 updateDto.getName(),
-                updateDto.getClassLevel(),
                 updateDto.getProfileImage()
         );
 
