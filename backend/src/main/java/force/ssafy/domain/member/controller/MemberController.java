@@ -3,6 +3,7 @@ package force.ssafy.domain.member.controller;
 import force.ssafy.domain.member.dto.request.MemberUpdateRequest;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
+import force.ssafy.domain.member.dto.response.MemberUpdateResponse;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
 import force.ssafy.domain.member.service.MemberService;
 import force.ssafy.global.security.userdetails.CustomUserDetails;
@@ -42,11 +43,13 @@ public class MemberController {
      * 회원 정보 수정 API
      */
     @PatchMapping("/me")
-    public ResponseEntity<Void> updateMemberInfo(
+    public ResponseEntity<MemberUpdateResponse> updateMemberInfo(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody MemberUpdateRequest updateDto) {
         memberService.updateMemberInfo(userDetails.getMemberId(), updateDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(MemberUpdateResponse.builder()
+                .message("개인정보가 성공적으로 수정되었습니다.")
+                .build());
     }
 
     /**
