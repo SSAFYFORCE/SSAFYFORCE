@@ -1,6 +1,6 @@
 package force.ssafy.domain.member.service;
 
-import force.ssafy.domain.member.dto.request.MemberUpdateResponse;
+import force.ssafy.domain.member.dto.request.MemberUpdateRequest;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
@@ -72,7 +72,7 @@ public class MemberService implements UserDetailsService {
      * 회원 정보 수정
      */
     @Transactional
-    public void updateMemberInfo(Long memberId, MemberUpdateResponse updateDto) {
+    public void updateMemberInfo(Long memberId, MemberUpdateRequest updateDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다."));
 
