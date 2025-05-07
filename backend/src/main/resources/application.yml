@@ -19,6 +19,9 @@ spring:
             org.hibernate.SQL: debug
             org.hibernate.type: trace
             com.baekjoon.team: debug
+            force.ssafy.global.security: DEBUG
+            org.springframework.security: DEBUG
+
 
 jwt:
     secret: backjoonTeamCompetitionApplicationSecretKey2023!@#$
