@@ -2,12 +2,14 @@ package force.ssafy.domain.team.entity;
 
 import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 public class Team {
 
     @Id
@@ -26,4 +28,13 @@ public class Team {
 
     @OneToMany(mappedBy = "team")
     private List<TeamMember> teamMembers = new ArrayList<>();
+
+    private boolean deleted = false;
+
+    private LocalDateTime deletedAt;
+
+    public void delete() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }
