@@ -42,6 +42,7 @@ public class AuthController {
                 .classLevel(member.getClassLevel())
                 .profileImage(member.getProfileImage())
                 .createdAt(member.getCreatedAt())
+                .solvedAcId(member.getSolvedAcId())
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(memberDto);

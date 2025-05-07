@@ -7,5 +7,6 @@ import lombok.Getter;
 @Builder
 public class VerificationResultDto {
     private boolean verified;
+    private boolean needCodeGeneration;
     private String message;
 }

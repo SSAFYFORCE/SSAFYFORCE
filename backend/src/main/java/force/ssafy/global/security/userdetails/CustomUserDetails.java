@@ -13,12 +13,12 @@ import java.util.Collections;
 public class CustomUserDetails implements UserDetails {
 
     private final Long memberId;
-    private final String nickname;
+    private final String solvedAcId;
     private final String password;
 
     public CustomUserDetails(Member member) {
         this.memberId = member.getId();
-        this.nickname = member.getNickname();
+        this.solvedAcId = member.getSolvedAcId();
         this.password = member.getPassword();
     }
 
@@ -34,7 +34,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return nickname;
+        return solvedAcId;
     }
 
     @Override

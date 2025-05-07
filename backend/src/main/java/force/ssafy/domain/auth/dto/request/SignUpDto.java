@@ -10,10 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SignUpDto {
 
-    @NotBlank(message = "닉네임은 필수 입력값입니다.")
-    @Size(min = 3, max = 30, message = "닉네임은 3자 이상 30자 이하로 입력해주세요.")
-    private String nickname;
-
     @NotBlank(message = "비밀번호는 필수 입력값입니다.")
     @Size(min = 6, message = "비밀번호는 최소 6자 이상이어야 합니다.")
     private String password;

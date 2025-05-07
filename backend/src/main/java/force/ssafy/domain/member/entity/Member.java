@@ -29,8 +29,8 @@ public class Member implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 30, unique = true)
-    private String nickname;
+//    @Column(nullable = false, length = 30, unique = true)
+//    private String nickname;
 
     @Column(nullable = false, length = 100)
     private String password;
@@ -47,7 +47,7 @@ public class Member implements UserDetails {
     @Column(nullable = false, length = 100)
     private String encryptionKey;
 
-    @Column(name = "solved_ac_id", length = 30)
+    @Column(name = "solved_ac_id", nullable = false, length = 30, unique = true)
     private String solvedAcId;
 
     @Column(name = "verified", nullable = false)
@@ -68,9 +68,8 @@ public class Member implements UserDetails {
     private List<SolvedProblem> SolvedProblems = new ArrayList<>();
 
     @Builder
-    public Member(String nickname, String password, String name, Integer classLevel,
+    public Member( String password, String name, Integer classLevel,
                   String profileImage, String encryptionKey, String solvedAcId) {
-        this.nickname = nickname;
         this.password = password;
         this.name = name;
         this.classLevel = classLevel;
@@ -103,6 +102,6 @@ public class Member implements UserDetails {
 
     @Override
     public String getUsername() {
-        return "";
+        return this.solvedAcId;
     }
 }
