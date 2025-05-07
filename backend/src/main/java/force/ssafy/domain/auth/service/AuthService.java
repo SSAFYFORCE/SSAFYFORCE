@@ -7,6 +7,7 @@ import force.ssafy.domain.auth.exception.AuthError;
 import force.ssafy.domain.auth.exception.AuthenticationException;
 import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.exception.DuplicateSolvedAcIdException;
+import force.ssafy.domain.member.exception.MemberNotFoundException;
 import force.ssafy.domain.member.repository.MemberRepository;
 import force.ssafy.domain.solvedac.service.SolvedAcService;
 import force.ssafy.global.security.jwt.JwtTokenProvider;
@@ -96,5 +97,31 @@ public class AuthService {
         byte[] randomBytes = new byte[32]; // 256 bit
         new SecureRandom().nextBytes(randomBytes);
         return Base64.getEncoder().encodeToString(randomBytes);
+    }
+
+    /**
+     * 리프레시 토큰을 사용하여 새 액세스 토큰 발급
+     */
+    @Transactional
+    public TokenDto refreshToken(String refreshToken) {
+        // 1. 리프레시 토큰 유효성 검사
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new AuthenticationException("토큰이 만료되었습니다. 다시 로그인해주세요.");
+        }
+
+        // 2. 리프레시 토큰에서 회원 ID 추출
+        Long memberId;
+        try {
+            memberId = jwtTokenProvider.getMemberIdFromToken(refreshToken);
+        } catch (Exception e) {
+            throw new AuthenticationException("리프레시 토큰이 잘못되었습니다.");
+        }
+
+        // 3. 회원 정보 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("회원 정보를 찾을 수 없습니다."));
+
+        // 4. 새 토큰 발급
+        return jwtTokenProvider.createToken(member.getId(), member.getSolvedAcId());
     }
 }

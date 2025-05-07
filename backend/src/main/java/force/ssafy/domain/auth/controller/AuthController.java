@@ -1,9 +1,11 @@
 package force.ssafy.domain.auth.controller;
 
 
+import force.ssafy.domain.auth.dto.request.RefreshTokenRequestDto;
 import force.ssafy.domain.auth.dto.request.SignInDto;
 import force.ssafy.domain.auth.dto.request.SignUpDto;
 import force.ssafy.domain.auth.dto.response.TokenDto;
+import force.ssafy.domain.auth.exception.AuthenticationException;
 import force.ssafy.domain.auth.service.AuthService;
 import force.ssafy.domain.member.dto.response.MemberDto;
 import force.ssafy.domain.member.entity.Member;
@@ -12,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -56,5 +60,22 @@ public class AuthController {
         String accessToken = token.replace("Bearer ", "");
         authService.signOut(accessToken);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 토큰 갱신 API
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequestDto request) {
+        try {
+            TokenDto tokenDto = authService.refreshToken(request.getRefreshToken());
+            return ResponseEntity.ok(tokenDto);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "유효하지 않은 리프레시 토큰입니다."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }
