@@ -33,7 +33,7 @@ public class MemberController {
      */
     @GetMapping("/check-nickname")
     public ResponseEntity<NicknameVerificationDto> checkNicknameAvailability(
-            @RequestParam("nickname") String nickname) {
+            @RequestParam("solvedAcId") String nickname) {
         NicknameVerificationDto result = memberService.checkNicknameAvailability(nickname);
         return ResponseEntity.ok(result);
     }

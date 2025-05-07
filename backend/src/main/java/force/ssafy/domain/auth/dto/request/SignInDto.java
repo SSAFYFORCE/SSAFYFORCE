@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SignInDto {
 
-    @NotBlank(message = "닉네임은 필수 입력값입니다.")
-    private String nickname;
+    @NotBlank(message = "solved.ac ID는 필수 입력값입니다.")
+    private String solvedAcId;
 
     @NotBlank(message = "비밀번호는 필수 입력값입니다.")
     private String password;

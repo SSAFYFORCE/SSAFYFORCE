@@ -16,6 +16,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 @Slf4j
@@ -66,31 +67,56 @@ public class SolvedAcService {
     /**
      * solved.ac 인증코드 검증
      */
+    // 회원가입 전 과정이 순차적으로 이뤄지도록 가이드를 제공하는 방식
     @Transactional
     public VerificationResultDto verifyCode(String solvedAcId) {
-        // 저장된 인증코드 조회
-        VerificationCode verificationCode = verificationCodeRepository.findById(solvedAcId)
-                .orElseThrow(() -> new SolvedAcVerificationException("발급된 인증코드가 없습니다. 먼저 인증코드를 발급받으세요."));
+        try {
+            // 저장된 인증코드 조회
+            Optional<VerificationCode> verificationCodeOpt = verificationCodeRepository.findById(solvedAcId);
 
-        // 인증코드 만료 여부 확인
-        if (verificationCode.isExpired()) {
-            verificationCodeRepository.delete(verificationCode);
-            throw new SolvedAcVerificationException("인증코드가 만료되었습니다. 새로운 인증코드를 발급받으세요.");
+            if (verificationCodeOpt.isEmpty()) {
+                log.warn("인증코드 조회 실패: solvedAcId={}", solvedAcId);
+                return VerificationResultDto.builder()
+                        .verified(false)
+                        .needCodeGeneration(true) // 프론트엔드에서 인증코드 발급 페이지로 리다이렉트하는 플래그
+                        .message("발급된 인증코드가 없습니다. 먼저 인증코드를 발급받으세요.")
+                        .build();
+            }
+
+            VerificationCode verificationCode = verificationCodeOpt.get();
+
+            // 인증코드 만료 여부 확인
+            if (verificationCode.isExpired()) {
+                verificationCodeRepository.delete(verificationCode);
+                return VerificationResultDto.builder()
+                        .verified(false)
+                        .needCodeGeneration(true)
+                        .message("인증코드가 만료되었습니다. 새로운 인증코드를 발급받으세요.")
+                        .build();
+            }
+
+            // 실제 구현에서는 solved.ac API를 호출하여 사용자 프로필의 이름 필드에
+            // 인증코드가 올바르게 설정되었는지 확인
+            boolean verified = checkSolvedAcProfile(solvedAcId, verificationCode.getCode());
+
+            if (verified) {
+                // 인증 성공 시 코드 제거
+                verificationCodeRepository.delete(verificationCode);
+            }
+
+            return VerificationResultDto.builder()
+                    .verified(verified)
+                    .needCodeGeneration(false)
+                    .message(verified ? "인증에 성공했습니다." : "인증에 실패했습니다. 프로필 설정을 확인해주세요.")
+                    .build();
+        } catch (Exception e) {
+            log.error("인증 검증 중 오류 발생: {}", e.getMessage(), e);
+            return VerificationResultDto.builder()
+                    .verified(false)
+                    .needCodeGeneration(false)
+                    .message("인증 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+                    .build();
         }
-
-        // 실제 구현에서는 solved.ac API를 호출하여 사용자 프로필의 이름 필드에
-        // 인증코드가 올바르게 설정되었는지 확인
-        boolean verified = checkSolvedAcProfile(solvedAcId, verificationCode.getCode());
-
-        if (verified) {
-            // 인증 성공 시 코드 제거
-            verificationCodeRepository.delete(verificationCode);
-        }
-
-        return VerificationResultDto.builder()
-                .verified(verified)
-                .message(verified ? "인증에 성공했습니다." : "인증에 실패했습니다. 프로필 설정을 확인해주세요.")
-                .build();
     }
 
     // 랜덤 인증코드 생성 메서드

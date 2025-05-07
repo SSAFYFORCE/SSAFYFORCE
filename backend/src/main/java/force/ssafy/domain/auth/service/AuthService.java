@@ -6,7 +6,7 @@ import force.ssafy.domain.auth.dto.response.TokenDto;
 import force.ssafy.domain.auth.exception.AuthError;
 import force.ssafy.domain.auth.exception.AuthenticationException;
 import force.ssafy.domain.member.entity.Member;
-import force.ssafy.domain.member.exception.DuplicateNicknameException;
+import force.ssafy.domain.member.exception.DuplicateSolvedAcIdException;
 import force.ssafy.domain.member.repository.MemberRepository;
 import force.ssafy.domain.solvedac.service.SolvedAcService;
 import force.ssafy.global.security.jwt.JwtTokenProvider;
@@ -33,8 +33,8 @@ public class AuthService {
     @Transactional
     public Member signUp(SignUpDto signUpDto) {
         // 닉네임 중복 확인
-        if (memberRepository.existsByNickname(signUpDto.getNickname())) {
-            throw new DuplicateNicknameException(signUpDto.getNickname());
+        if (memberRepository.existsBySolvedAcId(signUpDto.getSolvedAcId())) {
+            throw new DuplicateSolvedAcIdException(signUpDto.getSolvedAcId());
         }
 
         // solved.ac 인증 확인
@@ -66,7 +66,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public TokenDto signIn(SignInDto signInDto) {
         // 회원 조회
-        Member member = memberRepository.findByNickname(signInDto.getNickname())
+        Member member = memberRepository.findBySolvedAcId(signInDto.getSolvedAcId())
                 .orElseThrow(() -> new AuthenticationException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
         // 비밀번호 확인

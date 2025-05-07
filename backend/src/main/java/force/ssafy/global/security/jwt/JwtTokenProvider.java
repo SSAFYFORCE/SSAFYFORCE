@@ -34,9 +34,9 @@ public class JwtTokenProvider {
     }
 
     // 토큰 생성
-    public TokenDto createToken(Long memberId, String nickname) {
+    public TokenDto createToken(Long memberId, String solvedAcId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(memberId));
-        claims.put("nickname", nickname);
+        claims.put("solvedAcId", solvedAcId);
         Date now = new Date();
 
         String accessToken = Jwts.builder()
