@@ -1,5 +1,6 @@
 package force.ssafy.domain.member.entity;
 
+import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -57,6 +59,9 @@ public class Member implements UserDetails {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "member")
+    private List<TeamMember> teamMembers = new ArrayList<>();
 
     @Builder
     public Member(String nickname, String password, String name, Integer classLevel,
