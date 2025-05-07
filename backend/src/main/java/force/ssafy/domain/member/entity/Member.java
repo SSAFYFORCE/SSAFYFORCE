@@ -38,9 +38,6 @@ public class Member implements UserDetails {
     @Column(nullable = false, length = 30)
     private String name;
 
-    @Column(name = "classNum", nullable = false)
-    private Integer classLevel; //classNum으로 바꾸기
-
     @Column(length = 200)
     private String profileImage;
 
@@ -68,11 +65,10 @@ public class Member implements UserDetails {
     private List<SolvedProblem> SolvedProblems = new ArrayList<>();
 
     @Builder
-    public Member( String password, String name, Integer classLevel,
+    public Member( String password, String name,
                   String profileImage, String encryptionKey, String solvedAcId) {
         this.password = password;
         this.name = name;
-        this.classLevel = classLevel;
         this.profileImage = profileImage;
         this.encryptionKey = encryptionKey;
         this.solvedAcId = solvedAcId;
@@ -82,9 +78,8 @@ public class Member implements UserDetails {
         this.verified = true;
     }
 
-    public void updateProfile(String name, Integer classLevel, String profileImage) {
+    public void updateProfile(String name, String profileImage) {
         this.name = name;
-        this.classLevel = classLevel;
         if (profileImage != null) {
             this.profileImage = profileImage;
         }
