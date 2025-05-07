@@ -18,9 +18,6 @@ public class SignUpDto {
     @Size(max = 30, message = "이름은 30자 이하로 입력해주세요.")
     private String name;
 
-    @NotNull(message = "클래스 레벨은 필수 입력값입니다.")
-    private Integer classLevel;
-
     @NotBlank(message = "solved.ac ID는 필수 입력값입니다.")
     private String solvedAcId;
 }
