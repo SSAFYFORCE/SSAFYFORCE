@@ -9,9 +9,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -19,7 +22,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class Member {
+public class Member implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,8 +37,8 @@ public class Member {
     @Column(nullable = false, length = 30)
     private String name;
 
-    @Column(name = "class", nullable = false)
-    private Integer classLevel;
+    @Column(name = "classNum", nullable = false)
+    private Integer classLevel; //classNum으로 바꾸기
 
     @Column(length = 200)
     private String profileImage;
@@ -86,5 +89,16 @@ public class Member {
 
     public void updatePassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    //이부분 수정필요 실행안되서 UserDetails 오버라이드 받음
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return "";
     }
 }
