@@ -2,6 +2,7 @@ package force.ssafy.domain.member.controller;
 
 import force.ssafy.domain.member.dto.request.MemberUpdateRequest;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
+import force.ssafy.domain.member.dto.request.PasswordResetDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
 import force.ssafy.domain.member.dto.response.MemberUpdateResponse;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
@@ -60,6 +61,16 @@ public class MemberController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody PasswordChangeDto passwordChangeDto) {
         memberService.changePassword(userDetails.getMemberId(), passwordChangeDto);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 비밀번호 재설정 API
+     */
+    @PostMapping("/password/reset")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody PasswordResetDto passwordResetDto) {
+        memberService.resetPassword(passwordResetDto);
         return ResponseEntity.ok().build();
     }
 
