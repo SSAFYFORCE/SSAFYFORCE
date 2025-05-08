@@ -1,7 +1,6 @@
 package force.ssafy.domain.auth.controller;
 
 
-import force.ssafy.domain.auth.dto.request.RefreshTokenRequestDto;
 import force.ssafy.domain.auth.dto.request.SignInDto;
 import force.ssafy.domain.auth.dto.request.SignUpDto;
 import force.ssafy.domain.auth.dto.response.TokenDto;
@@ -66,10 +65,18 @@ public class AuthController {
      * 토큰 갱신 API
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequestDto request) {
+    public ResponseEntity<?> refreshToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            TokenDto tokenDto = authService.refreshToken(request.getRefreshToken());
+            // Bearer 토큰에서 리프레시 토큰 추출
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "리프레시 토큰이 필요합니다."));
+            }
+
+            String refreshToken = authHeader.substring(7);
+            TokenDto tokenDto = authService.refreshToken(refreshToken);
             return ResponseEntity.ok(tokenDto);
+
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "유효하지 않은 리프레시 토큰입니다."));
