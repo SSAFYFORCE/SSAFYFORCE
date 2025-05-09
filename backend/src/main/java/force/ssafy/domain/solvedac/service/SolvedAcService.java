@@ -2,22 +2,22 @@ package force.ssafy.domain.solvedac.service;
 
 import force.ssafy.domain.solvedac.dto.response.VerificationCodeResponseDto;
 import force.ssafy.domain.solvedac.dto.response.VerificationResultDto;
+import force.ssafy.domain.solvedac.entity.ProblemItem;
 import force.ssafy.domain.solvedac.entity.VerificationCode;
-import force.ssafy.domain.solvedac.exception.SolvedAcVerificationException;
 import force.ssafy.domain.solvedac.repository.VerificationCodeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -176,4 +176,24 @@ public class SolvedAcService {
             return false;
         }
     }
+
+
+    private final WebClient webClient = WebClient.builder()
+            .baseUrl("https://solved.ac")
+            .defaultHeader(HttpHeaders.ACCEPT, "application/json")
+            .defaultHeader("x-solvedac-language", "ko")
+            .build();
+
+    public List<ProblemItem> getProblems(List<Long> problemIds) {
+        String ids = problemIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        return webClient.get()
+                .uri("/api/v3/problem/lookup?problemIds=" + ids)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<ProblemItem>>() {})
+                .block(); // Spring MVC에서는 block() 필요
+    }
+
 }
