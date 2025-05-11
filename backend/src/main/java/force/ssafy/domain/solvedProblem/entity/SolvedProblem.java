@@ -36,7 +36,6 @@ public class SolvedProblem {
     @JoinColumn(name = "problem_id", nullable = false)
     private Problem problem;
     private LocalDateTime solvedDate;
-    @Enumerated(EnumType.STRING)
     private String language;
     private Integer timeComplexity;
     private Integer spaceComplexity;
