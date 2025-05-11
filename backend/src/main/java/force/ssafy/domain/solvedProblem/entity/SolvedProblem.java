@@ -18,7 +18,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "solved_problem", indexes = {
         @Index(name = "idx_member_problem", columnList = "member_id, problem_id"),
         @Index(name = "idx_member_solved_date", columnList = "member_id, solved_date"),
-        @Index(name = "idx_solved_date", columnList = "solved_date")
+        @Index(name = "idx_solved_date", columnList = "solved_date"),
+        @Index(name = "idx_submission_id", columnList = "submission_id")
 })
 public class SolvedProblem {
 
@@ -40,4 +41,5 @@ public class SolvedProblem {
     private Integer spaceComplexity;
     private String submitUrl;
     private Boolean isFirstSolved;
+    private Integer submissionId;
 }
