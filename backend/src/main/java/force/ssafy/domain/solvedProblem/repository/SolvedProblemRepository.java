@@ -37,4 +37,5 @@ public interface SolvedProblemRepository extends JpaRepository<SolvedProblem, Lo
             LocalDateTime endDate);
 
     List<SolvedProblem> findBySolvedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<SolvedProblem> findBySolvedDateBetweenAndIsFirstSolved(LocalDateTime startDate, LocalDateTime endDate, Boolean isFirstSolved);
 }

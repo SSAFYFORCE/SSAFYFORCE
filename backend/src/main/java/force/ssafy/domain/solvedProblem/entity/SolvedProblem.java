@@ -19,7 +19,8 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_member_problem", columnList = "member_id, problem_id"),
         @Index(name = "idx_member_solved_date", columnList = "member_id, solved_date"),
         @Index(name = "idx_solved_date", columnList = "solved_date"),
-        @Index(name = "idx_submission_id", columnList = "submission_id")
+        @Index(name = "idx_submission_id", columnList = "submission_id"),
+        @Index(name = "idx_solved_date_first_solved", columnList = "solved_date, is_first_solved")
 })
 public class SolvedProblem {
 
