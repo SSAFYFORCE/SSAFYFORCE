@@ -1,7 +1,10 @@
 package force.ssafy.domain.solvedProblem.repository;
 
+import force.ssafy.domain.member.entity.Member;
+import force.ssafy.domain.problem.entity.Problem;
 import force.ssafy.domain.solvedProblem.entity.SolvedProblem;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,5 +27,14 @@ public interface SolvedProblemRepository extends JpaRepository<SolvedProblem, Lo
             LocalDateTime startDate,
             LocalDateTime endDate,
             Pageable pageable);
+    boolean existsBySubmissionId(Integer submissionId);
 
+    boolean existsByMemberAndProblem(Member member, Problem problem);
+
+    List<SolvedProblem> findByMemberAndSolvedDateBetweenOrderBySolvedDateDesc(
+            Member member,
+            LocalDateTime startDate,
+            LocalDateTime endDate);
+
+    List<SolvedProblem> findBySolvedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 }
