@@ -35,9 +35,9 @@ public class SolvedProblem {
     private Problem problem;
     private LocalDateTime solvedDate;
     @Enumerated(EnumType.STRING)
-    private LanguageType language;
-    private int timeComplexity;
-    private int spaceComplexity;
+    private String language;
+    private Integer timeComplexity;
+    private Integer spaceComplexity;
     private String submitUrl;
     private Boolean isFirstSolved;
 }
