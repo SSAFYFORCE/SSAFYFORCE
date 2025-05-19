@@ -29,6 +29,8 @@ public class ProblemService {
     private final ProblemAlgorithmRepository problemAlgorithmRepository;
     private final AlgorithmRepository algorithmRepository;
 
+    // ProblemCrawlService에서 ProblemService를 호출 중임
+
     public List<ProblemGetResponse> findAll() {
         log.info("selectAllProblems 호출");
 
