@@ -1,132 +1,187 @@
-# 프론트엔드 환경세팅 시작하기
+# 알고리즘 플랫폼 프론트엔드
 
-이 문서는 프로젝트의 프론트엔드 개발 환경 설정 및 시작 방법에 대한 가이드입니다.
+Vue.js 기반의 알고리즘 문제 해결 플랫폼 프론트엔드 애플리케이션입니다.
 
-## 개발 환경
+## 🚀 개발 환경 설정
 
-- React 19
-- Vite 6
-- Tailwind CSS
-- Jotai (상태 관리)
+### 필수 요구사항
+- Node.js 16.x 이상
+- npm 또는 yarn
 
-## 시작하기
-
-### 1. 의존성 설치
-
-프로젝트 루트 디렉토리에서 다음 명령어를 실행합니다:
+### 프로젝트 설치 및 실행
 
 ```bash
-cd frontend
+# 의존성 설치
 npm install
-```
 
-### 2. 개발 서버 실행
-
-```bash
-npm run dev
-```
-
-이제 [http://localhost:3000](http://localhost:3000)에서 개발 서버가 실행됩니다.
-
-## 프로젝트 구조
-
-```
-frontend/
-├── public/            # 정적 파일 (이미지, 파비콘 등)
-├── src/
-│   ├── assets/        # 이미지, 폰트 등 정적 리소스
-│   ├── components/    # 재사용 가능한 컴포넌트
-│   │   ├── common/    # 공통 컴포넌트 (버튼, 인풋 등)
-│   │   └── layout/    # 레이아웃 컴포넌트 (헤더, 푸터 등)
-│   ├── constants/     # 상수 정의
-│   ├── hooks/         # 커스텀 훅
-│   ├── pages/         # 페이지 컴포넌트
-│   ├── services/      # API 서비스
-│   ├── store/         # 상태 관리 (Jotai)
-│   ├── styles/        # 글로벌 스타일
-│   ├── utils/         # 유틸리티 함수
-│   ├── App.jsx        # 앱 진입점
-│   └── main.jsx       # 메인 렌더링 파일
-├── .env               # 환경 변수
-└── vite.config.js     # Vite 설정
-```
-
-## 주요 명명 규칙
-
-- **파일 경로 대소문자 주의**: Windows 환경에서 발생할 수 있는 문제를 방지하기 위해 import 경로의 대소문자를 정확히 일치시켜야 합니다.
-- **컴포넌트 파일**: `PascalCase.jsx` (예: `Button.jsx`)
-- **폴더 및 비컴포넌트 파일**: `camelCase.js` (예: `utils.js`)
-
-## 환경 변수
-
-Vite는 기본적으로 `import.meta.env`를 통해 환경 변수에 접근합니다. `process.env` 대신 이 방식을 사용해야 합니다.
-
-```javascript
-// 올바른 방법
-const isDev = import.meta.env.DEV;
-const apiUrl = import.meta.env.VITE_API_URL;
-
-// 잘못된 방법 (오류 발생)
-const isDev = process.env.NODE_ENV === 'development';
-```
-
-커스텀 환경 변수는 반드시 `VITE_` 접두사를 붙여야 클라이언트 코드에서 접근할 수 있습니다:
-
-```
-# .env 파일 예시
-VITE_API_URL=http://localhost:8000
-```
-
-## 유용한 명령어
-
-```bash
 # 개발 서버 실행
 npm run dev
 
+# 빌드
+npm run build
+
+# 미리보기
+npm run preview
+```
+
+개발 서버는 `http://localhost:5173`에서 실행됩니다.
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── assets/                 # 정적 자산 (이미지, 스타일)
+│   ├── logo.svg
+│   └── main.css
+├── components/              # Vue 컴포넌트
+│   ├── common/             # 공통 컴포넌트
+│   │   ├── Navbar.vue
+│   │   ├── Footer.vue
+│   │   └── LoadingSpinner.vue
+│   └── ranking/            # 랭킹 관련 컴포넌트
+│       ├── RankingTable.vue
+│       └── RankingFilter.vue
+├── views/                  # 페이지 컴포넌트
+│   ├── HomeView.vue        # 메인 페이지
+│   ├── ProblemView.vue     # 문제 페이지
+│   ├── TeamView.vue        # 팀 페이지
+│   ├── RankingView.vue     # 랭킹 페이지
+│   ├── LoginView.vue       # 로그인 페이지
+│   ├── ProfileView.vue     # 프로필 페이지
+│   └── NotFoundView.vue    # 404 페이지
+├── router/                 # Vue Router 설정
+│   └── index.js
+├── stores/                 # Pinia 상태 관리
+│   ├── auth.js            # 인증 스토어
+│   └── ranking.js         # 랭킹 스토어
+├── mockdata/              # 목 데이터
+│   ├── rankings.js        # 랭킹 데이터
+│   ├── problems.js        # 문제 데이터
+│   ├── teams.js           # 팀 데이터
+│   └── userProfile.js     # 사용자 프로필 데이터
+├── utils/                 # 유틸리티 함수
+│   └── datatransferutil.js # 데이터 전송 유틸
+├── App.vue                # 루트 컴포넌트
+└── main.js                # 앱 엔트리 포인트
+```
+
+## 🛠️ 주요 기술 스택
+
+- **Vue.js 3** - 프론트엔드 프레임워크
+- **Vue Router** - 라우팅
+- **Pinia** - 상태 관리
+- **Font Awesome** - 아이콘
+- **Vite** - 빌드 도구
+
+## 📋 주요 기능
+
+### 🏠 홈페이지
+- 움직이는 그라데이션 배너
+- 랭킹 미리보기 (개인/팀)
+- 일간/주간/월간 필터
+
+### 🔧 문제 페이지
+- 문제 검색 및 필터링
+- 티어별, 알고리즘별 필터
+- 해결 상태 필터
+
+### 👥 팀 페이지
+- 팀 검색 및 가입
+- 팀 정보 및 멤버 미리보기
+- 태그 기반 필터링
+
+### 🏆 랭킹 페이지
+- 전체 랭킹 (페이지네이션)
+- 1등, 2등, 3등 특별 표시
+- 개인 랭킹 정보
+
+### 👤 프로필 페이지
+- 사용자 통계 정보
+- 최근 해결한 문제 20개
+- 티어별 분포 차트
+- 프로필 편집 기능
+
+### 🔐 인증
+- 로그인/로그아웃
+- 실시간 상태 업데이트
+- 라우트 가드
+
+## 🎨 디자인 시스템
+
+- **메인 컬러**: 삼성 블루 (#1428A0)
+- **티어 색상**: Ruby, Diamond, Platinum, Gold, Silver, Bronze
+- **반응형 디자인**: 모바일/태블릿/데스크톱 지원
+
+## 🔧 개발 시 참고사항
+
+### 데모 계정
+- 사용자명: `test`
+- 비밀번호: `password`
+
+### Mock Data
+현재 백엔드 API 대신 Mock 데이터를 사용합니다:
+- `src/mockdata/` 폴더에서 테스트 데이터 수정 가능
+- `datatransferutil.js`에서 API 호출 시뮬레이션
+
+### 새로운 페이지 추가
+1. `src/views/`에 Vue 컴포넌트 생성
+2. `src/router/index.js`에 라우트 추가
+3. 네비게이션바에 링크 추가 (필요시)
+
+### 컴포넌트 개발
+- `<script setup>` 구문 사용
+- Composition API 권장
+- TypeScript 지원 (`.vue` → `.vue.ts`)
+
+## 📦 빌드 및 배포
+
+```bash
 # 프로덕션 빌드
 npm run build
 
-# 빌드된 결과물 로컬에서 미리보기
+# 빌드 결과 미리보기
 npm run preview
 
-# 코드 린팅
+# 린트 검사
 npm run lint
 
-# Tailwind 초기화 (필요한 경우)
-npm run tailwind:init
+# 코드 포맷팅
+npm run format
 ```
 
-## 주요 라이브러리
+빌드된 파일은 `dist/` 폴더에 생성됩니다.
 
-- **상태 관리**: [Jotai](https://jotai.org/) - 간단하고 효율적인 상태 관리 라이브러리
-- **UI 컴포넌트**: 모든 컴포넌트는 `components` 폴더에서 관리됩니다.
-- **HTTP 클라이언트**: [Axios](https://axios-http.com/) - API 요청 처리
-- **스타일링**: [Tailwind CSS](https://tailwindcss.com/) 및 [Emotion](https://emotion.sh/)
-- **아이콘**: [Lucide React](https://lucide.dev/) - 간단하고 일관된 아이콘 세트
-- **차트**: [Chart.js](https://www.chartjs.org/)와 React 래퍼
+## 🔄 백엔드 연동
 
-## 주의사항
+백엔드 API와 연동 시 `src/utils/datatransferutil.js` 파일의 함수들을 수정하여 실제 API 호출로 변경하면 됩니다.
 
-- **환경 변수 사용**: `process.env` 대신 `import.meta.env`를 사용해야 합니다.
-- **파일 경로 대소문자**: import 경로의 대소문자를 정확히 일치시켜야 합니다.
-- **빌드 결과물**: 빌드 결과물은 `dist` 폴더에 생성됩니다.
+```javascript
+// 예시: 실제 API 호출로 변경
+export const fetchRankings = async (period, type) => {
+  const response = await axios.get(`/api/rankings`, {
+    params: { period, type }
+  });
+  return response.data;
+};
+```
 
-## 추가 학습 자료
+## 🐛 문제 해결
 
-- [React 공식 문서](https://react.dev/)
-- [Vite 공식 문서](https://vitejs.dev/guide/)
-- [Tailwind CSS 공식 문서](https://tailwindcss.com/docs)
-- [Jotai 공식 문서](https://jotai.org/docs/introduction)
+### 개발 서버가 시작되지 않는 경우
+```bash
+# node_modules 삭제 후 재설치
+rm -rf node_modules
+npm install
+```
 
-## 문제 해결
+### 스타일이 적용되지 않는 경우
+- 브라우저 캐시 삭제
+- 하드 리프레시 (Ctrl+Shift+R)
 
-일반적인 문제 해결 방법:
+## 👨‍💻 개발팀
 
-1. **빌드 오류**: `node_modules`를 삭제하고 `npm install`을 다시 실행해보세요.
-2. **캐시 문제**: `node_modules/.vite` 폴더를 삭제하고 다시 시도해보세요.
-3. **환경 변수 문제**: `.env` 파일에 `VITE_` 접두사가 붙어있는지 확인하세요.
-4. **경로 문제**: import 경로의 대소문자가 정확히 일치하는지 확인하세요.
+프론트엔드 개발팀에서 개발 및 관리하고 있습니다.
 
 ---
 
-더 자세한 정보나 질문이 있으면 팀 채널에 문의해주세요.
+**Happy Coding! 🚀**
