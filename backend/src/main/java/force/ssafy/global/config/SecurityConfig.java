@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/sign-in", "/api/v1/auth/sign-up", "/api/v1/auth/refresh").permitAll()
                         .requestMatchers("/api/v1/solved-ac/verification-code", "/api/v1/solved-ac/verify/**").permitAll()
-                        .requestMatchers("/api/v1/members/check-nickname", "/api/v1/members/password/reset").permitAll()
+                        .requestMatchers("/api/v1/members/check-nickname", "/api/v1/members/password/reset", "/api/v1/**").permitAll()
                         .requestMatchers(
                                 // ✅ Swagger 관련 인증 없이 허용
                                 "/swagger-ui.html",

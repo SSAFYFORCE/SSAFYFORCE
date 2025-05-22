@@ -83,7 +83,7 @@ public class ProblemService {
     }
 
     private List<AlgorithmGetResponse> extractAlgorithmResponseFromEntity(List<ProblemAlgorithm> problemAlgorithms) {
-        log.info("extractAlgorithmResponseFromEntity 호출");
+//        log.info("extractAlgorithmResponseFromEntity 호출");
 
         return problemAlgorithms.stream()
                 .map(pa -> AlgorithmGetResponse.from(pa.getAlgorithm()))
