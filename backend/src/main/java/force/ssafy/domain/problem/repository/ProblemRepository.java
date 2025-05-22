@@ -10,10 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface ProblemRepository extends JpaRepository<Problem, Long> {
     Optional<Problem> findByProblemNumber(Long problemNumber);
 
-    @Query(
-            value = "SELECT problem_number FROM problem ORDER BY problem_number DESC LIMIT 1",
-            nativeQuery = true
-    )
+    @Query(value = "SELECT problem_number FROM problem ORDER BY problem_number DESC LIMIT 1", nativeQuery = true)
     Long findMaxProblemNumber();
 
 }
