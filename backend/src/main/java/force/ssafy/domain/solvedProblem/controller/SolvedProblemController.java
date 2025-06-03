@@ -38,9 +38,9 @@ public class SolvedProblemController {
         return ResponseEntity.ok(solvedProblemService.getSolvedProblems(memberId, startDate, endDate, pageable));
     }
 
-    @PostMapping("/sync/{memberId}")
-    public ResponseEntity<SyncResultResponse> syncSolvedProblems(@PathVariable("memberId") Long memberId) {
-        SyncResultResponse syncResultResponse = solvedProblemSyncService.syncSolvedProblems(memberId);
+    @PostMapping("/sync/{solvedAcId}")
+    public ResponseEntity<SyncResultResponse> syncSolvedProblems(@PathVariable("solvedAcId") String solvedAcId) {
+        SyncResultResponse syncResultResponse = solvedProblemSyncService.syncSolvedProblems(solvedAcId);
         return ResponseEntity.ok(syncResultResponse);
     }
 }

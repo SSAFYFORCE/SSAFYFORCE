@@ -32,10 +32,10 @@ public class SolvedProblemSyncService {
     private String lambdaUrl;
 
     @Transactional
-    public SyncResultResponse syncSolvedProblems(Long memberId) {
+    public SyncResultResponse syncSolvedProblems(String solvedAcId) {
 
         // 1. 회원 정보 조회
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findBySolvedAcId(solvedAcId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
 
         // 2. 마지막 동기화 시간 확인 (없으면 10년 전으로 설정)
