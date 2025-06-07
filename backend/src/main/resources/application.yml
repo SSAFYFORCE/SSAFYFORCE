@@ -1,4 +1,6 @@
 spring:
+    profiles:
+        include: secret
     datasource:
         url: jdbc:mysql://localhost:3306/ssafyforce
         username: ssafy
