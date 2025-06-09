@@ -80,7 +80,6 @@ public class SolvedProblemSyncService {
         // 6. 모든 작업이 성공했을 때만 마지막 동기화 시간 업데이트
         try {
             member.updateLastProblemSyncTime(LocalDateTime.now());
-            memberRepository.save(member);
             log.info("동기화 성공 - 저장된 문제 수: {}, 사용자: {}", savedCount, solvedAcId);
         } catch (Exception e) {
             log.error("동기화 시간 업데이트 실패: {}", e.getMessage());
