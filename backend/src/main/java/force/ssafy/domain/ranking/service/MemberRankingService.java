@@ -78,6 +78,7 @@ public class MemberRankingService {
             } else {
                 sameRankCount++;
             }
+            previousScore = score;
 
             RankingDto rankingDto = RankingDto.of(
                     member,
@@ -87,7 +88,6 @@ public class MemberRankingService {
             );
 
             rankings.add(rankingDto);
-            previousScore = score;
         }
         return rankings;
     }
