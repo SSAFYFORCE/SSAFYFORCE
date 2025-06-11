@@ -1,7 +1,6 @@
 package force.ssafy.domain.solvedProblem.controller.dto.response;
 
 import force.ssafy.domain.problem.entity.ProblemTier;
-import force.ssafy.domain.solvedProblem.entity.LanguageType;
 import force.ssafy.domain.solvedProblem.entity.SolvedProblem;
 import lombok.Builder;
 import java.time.LocalDateTime;
@@ -16,7 +15,7 @@ public record SolvedProblemResponse(
         ProblemTier problemTier,
         String problemUrl,
         LocalDateTime solvedDate,
-        LanguageType language,
+        String language,
         int timeComplexity,
         int spaceComplexity,
         String submitUrl

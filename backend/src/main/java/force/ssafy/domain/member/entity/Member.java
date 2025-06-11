@@ -58,6 +58,9 @@ public class Member implements UserDetails {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false,name = "last_problem_sync_time")
+    private LocalDateTime lastProblemSyncTime;
+
     @OneToMany(mappedBy = "member")
     private List<TeamMember> teamMembers = new ArrayList<>();
 
@@ -98,5 +101,9 @@ public class Member implements UserDetails {
     @Override
     public String getUsername() {
         return this.solvedAcId;
+    }
+
+    public void updateLastProblemSyncTime(LocalDateTime lastProblemSyncTime) {
+        this.lastProblemSyncTime = lastProblemSyncTime;
     }
 }
