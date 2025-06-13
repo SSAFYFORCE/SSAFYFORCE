@@ -2,7 +2,7 @@ name: Deploy Spring Boot Application
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, "35-배포-자동-배포-파이프라인-생성" ]
     paths:
       - 'backend/**'
   workflow_dispatch:
