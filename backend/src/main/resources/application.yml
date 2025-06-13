@@ -22,9 +22,25 @@ spring:
             force.ssafy.global.security: DEBUG
             org.springframework.security: DEBUG
 
+    profiles:
+        active: ${profile:local}
 
 jwt:
     secret: backjoonTeamCompetitionApplicationSecretKey2023!@#$
     token:
         access-expiration-time: 3600000  # 1시간
         refresh-expiration-time: 1209600000  # 14일
+
+---
+spring:
+    config:
+        activate:
+            on-profile: local
+    # 로컬 환경 설정
+
+---
+spring:
+    config:
+        activate:
+            on-profile: prod
+    # 프로덕션 환경 설정은 application-prod.yml에서 관리
