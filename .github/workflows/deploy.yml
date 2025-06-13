@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -45,7 +45,12 @@ jobs:
         context: ./backend
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/ssafy-force:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
     
+    steps:
     - name: Deploy to EC2
       uses: appleboy/ssh-action@master
       with:
@@ -57,4 +62,4 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ssafy-force:latest
           docker stop ssafy-force || true
           docker rm ssafy-force || true
-          docker run -d --name ssafy-force -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/ssafy-force:latest 
+          docker run -d --name ssafy-force -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/ssafy-force:latest
