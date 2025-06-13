@@ -62,4 +62,4 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ssafy-force:latest
           docker stop ssafy-force || true
           docker rm ssafy-force || true
-          docker run -d --name ssafy-force -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/ssafy-force:latest
+          docker run -d --name ssafy-force -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod ${{ secrets.DOCKERHUB_USERNAME }}/ssafy-force:latest
