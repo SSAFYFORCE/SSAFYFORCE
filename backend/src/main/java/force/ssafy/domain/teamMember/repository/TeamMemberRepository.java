@@ -25,4 +25,18 @@ public class TeamMemberRepository {
                 .setParameter("teamId", teamId)
                 .getResultList();
     }
+
+    public List<TeamMemberDto> findPreviewMemberByTeamId(Long teamId) {
+        return em.createQuery(
+                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.nickname, m.name, m.profileImage) " +
+                                "FROM TeamMember tm " +
+                                "JOIN tm.member m " +
+                                "WHERE tm.team.id = :teamId " +
+                                "ORDER m.id ASC"
+                        , TeamMemberDto.class)
+                .setParameter("teamId", teamId)
+                .setMaxResults(3)
+                .getResultList();
+    }
+
 }

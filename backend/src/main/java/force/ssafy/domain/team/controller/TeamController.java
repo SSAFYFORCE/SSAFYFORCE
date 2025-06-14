@@ -1,5 +1,6 @@
 package force.ssafy.domain.team.controller;
 
+import force.ssafy.domain.team.dto.response.TeamListResponse;
 import force.ssafy.domain.team.dto.response.TeamResponse;
 import force.ssafy.domain.team.service.TeamService;
 import lombok.RequiredArgsConstructor;
@@ -25,5 +26,14 @@ public class TeamController {
     @GetMapping("/{teamId}")
     public ResponseEntity<TeamResponse> teamDetail(@PathVariable Long teamId) {
         return ResponseEntity.ok().body(teamService.findTeamDetail(teamId));
+    }
+
+    /**
+     * 모든 팀 정보 조회
+     * @return TeamListResponse
+     */
+    @GetMapping
+    public ResponseEntity<TeamListResponse> teamList() {
+        return ResponseEntity.ok().body(teamService.findAllTeams());
     }
 }
