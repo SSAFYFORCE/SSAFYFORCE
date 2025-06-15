@@ -1,7 +1,6 @@
 // src/utils/datatransferutil.js
 
 import rankingsData from '../mockdata/rankings.js'
-import problemsData from '../mockdata/problems.js'
 import teamsData from '../mockdata/teams.js'
 
 /**
@@ -59,43 +58,44 @@ export const fetchFullRankings = (period = 'daily', type = 'individual', page = 
 
 /**
  * 문제 목록을 가져오는 함수
- * @param {Object} filters - 필터 옵션
- * @returns {Promise} - 문제 목록
+ * @param {Object} filters - 필터 옵션 (page, size, tier, algorithm 등)
+ * @returns {Promise} - 문제 목록과 페이지 정보
  */
-export const fetchProblems = (filters = {}) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      let filteredProblems = [...problemsData]
+export const fetchProblems = async (filters = {}) => {
+  try {
+    const queryParams = new URLSearchParams()
 
-      // 티어 필터링
-      if (filters.tier) {
-        filteredProblems = filteredProblems.filter((p) => p.tier === filters.tier)
-      }
+    // 페이지네이션 파라미터
+    queryParams.append('page', filters.page || 0)
+    queryParams.append('size', filters.size || 10)
 
-      // 해결 상태 필터링
-      if (filters.solvedStatus !== undefined) {
-        filteredProblems = filteredProblems.filter((p) => p.isSolved === filters.solvedStatus)
-      }
+    // 필터 파라미터
+    if (filters.tier) queryParams.append('tier', filters.tier)
+    if (filters.algorithm) queryParams.append('algorithm', filters.algorithm)
+    if (filters.searchQuery) queryParams.append('search', filters.searchQuery)
+    if (filters.solvedStatus !== undefined) queryParams.append('solved', filters.solvedStatus)
 
-      // 알고리즘 필터링
-      if (filters.algorithm) {
-        filteredProblems = filteredProblems.filter((p) =>
-          p.algorithms.some((alg) => alg.includes(filters.algorithm)),
-        )
-      }
+    console.log(queryParams.toString())
 
-      // 검색어 필터링
-      if (filters.searchQuery) {
-        const query = filters.searchQuery.toLowerCase()
-        filteredProblems = filteredProblems.filter(
-          (p) =>
-            p.title.toLowerCase().includes(query) || p.problemNumber.toString().includes(query),
-        )
-      }
+    const response = await fetch(
+      `http://localhost:8080/api/v1/problems?${queryParams.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          accept: '*/*',
+        },
+      },
+    )
 
-      resolve(filteredProblems)
-    }, 400)
-  })
+    if (!response.ok) {
+      throw new Error('문제 목록을 가져오는데 실패했습니다.')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching problems:', error)
+    throw error
+  }
 }
 
 /**
