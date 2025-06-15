@@ -4,7 +4,7 @@ import force.ssafy.domain.member.entity.Member;
 import lombok.Builder;
 
 @Builder
-public record RankingDto(
+public record MemberRankingDto(
         Long memberId,
         String memberName,
         String solvedAcId,
@@ -13,8 +13,8 @@ public record RankingDto(
         Integer rank,
         Integer solvedCount
 ) {
-    public static RankingDto of(Member member, Integer score, Integer rank, Integer solvedCount) {
-        return RankingDto.builder()
+    public static MemberRankingDto of(Member member, Integer score, Integer rank, Integer solvedCount) {
+        return MemberRankingDto.builder()
                 .memberId(member.getId())
                 .memberName(member.getName())
                 .solvedAcId(member.getSolvedAcId())
