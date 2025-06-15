@@ -32,7 +32,7 @@ public class TeamMemberRepository {
                                 "FROM TeamMember tm " +
                                 "JOIN tm.member m " +
                                 "WHERE tm.team.id = :teamId " +
-                                "ORDER m.id ASC"
+                                "ORDER BY m.id ASC"
                         , TeamMemberDto.class)
                 .setParameter("teamId", teamId)
                 .setMaxResults(3)

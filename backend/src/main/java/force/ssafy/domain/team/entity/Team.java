@@ -2,7 +2,7 @@ package force.ssafy.domain.team.entity;
 
 import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,6 +10,9 @@ import java.util.List;
 
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Team {
 
     @Id
@@ -26,6 +29,7 @@ public class Team {
     private LocalDateTime updatedAt;
     private String profileImage;
 
+    @Builder.Default
     @OneToMany(mappedBy = "team")
     private List<TeamMember> teamMembers = new ArrayList<>();
 

@@ -1,6 +1,7 @@
 package force.ssafy.domain.team.service;
 
 import force.ssafy.domain.member.entity.Member;
+import force.ssafy.domain.team.dto.request.TeamCreateRequest;
 import force.ssafy.domain.team.dto.response.TeamListResponse;
 import force.ssafy.domain.team.dto.response.TeamResponse;
 import force.ssafy.domain.team.entity.Team;
@@ -8,6 +9,7 @@ import force.ssafy.domain.team.repository.TeamRepository;
 import force.ssafy.domain.teamMember.dto.TeamMemberDto;
 import force.ssafy.domain.teamMember.dto.response.TeamMemberResponse;
 import force.ssafy.domain.teamMember.repository.TeamMemberRepository;
+import force.ssafy.global.error.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class TeamService {
 
@@ -34,9 +36,9 @@ public class TeamService {
      */
     public TeamResponse findTeamDetail(Long teamId) {
         log.info("findTeamDetail 실행");
-        Team team = teamRepository.findById(teamId).get();
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 팀이 없습니다. id=" + teamId));
 
-        //
         List<TeamMemberDto> members = teamMemberRepository.findTeamMemberDtoByTeamId(teamId);
 
         // Member → MemberResponse 변환
@@ -52,6 +54,8 @@ public class TeamService {
      * @return TeamListResponse
      */
     public TeamListResponse findAllTeams() {
+        log.info("findAllTeams 실행");
+
         List<Team> all = teamRepository.findAll();
         List<TeamResponse> teamList = new ArrayList<>();
 
@@ -69,4 +73,15 @@ public class TeamService {
         return TeamListResponse.to(teamList);
     }
 
+    /**
+     * 팀 생성
+     * @param teamCreateRequest
+     */
+    @Transactional
+    public void save(TeamCreateRequest teamCreateRequest) {
+        log.info("team save 호출");
+
+        Team team = teamCreateRequest.toEntity();
+        teamRepository.save(team);
+    }
 }

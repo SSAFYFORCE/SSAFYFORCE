@@ -132,10 +132,10 @@
 
       <!-- 팀 생성 버튼 -->
       <div class="create-team-section">
-        <button class="btn btn-secondary">
+        <router-link to="/teams/create" class="btn btn-secondary">
           <font-awesome-icon :icon="['fas', 'plus']" />
           새 팀 만들기
-        </button>
+        </router-link>
       </div>
     </div>
   </div>
