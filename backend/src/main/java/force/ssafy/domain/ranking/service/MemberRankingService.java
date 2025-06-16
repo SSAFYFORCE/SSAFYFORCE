@@ -3,7 +3,8 @@ package force.ssafy.domain.ranking.service;
 import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.ranking.controller.dto.RankingPeriod;
 import force.ssafy.domain.ranking.controller.dto.response.RankingResponse;
-import force.ssafy.domain.ranking.service.dto.RankingDto;
+import force.ssafy.domain.ranking.service.dto.DateRange;
+import force.ssafy.domain.ranking.service.dto.MemberRankingDto;
 import force.ssafy.domain.solvedProblem.entity.SolvedProblem;
 import force.ssafy.domain.solvedProblem.repository.SolvedProblemRepository;
 
@@ -23,11 +24,11 @@ public class MemberRankingService {
     private final SolvedProblemRepository solvedProblemRepository;
 
     public RankingResponse getRanking(RankingPeriod period, LocalDate date) {
-        DateRange dateRange = calculateDateRange(period, date);
+        DateRange dateRange = CalculateDateRange.calculateDateRange(period, date);
 
         log.info("랭킹 계산 - 기간 : {}, 시작 : {}, 종료 : {}", period, dateRange.startDate(), dateRange.endDate());
 
-        List<RankingDto> rankings = calculateRankings(dateRange.startDate(), dateRange.endDate());
+        List<MemberRankingDto> rankings = calculateRankings(dateRange.startDate(), dateRange.endDate());
 
         return RankingResponse.of(
                 rankings,
@@ -37,28 +38,8 @@ public class MemberRankingService {
         );
     }
 
-    private DateRange calculateDateRange(RankingPeriod period, LocalDate date) {
-        switch (period) {
-            case DAILY -> {
-                LocalDateTime startOfDay = date.atStartOfDay();
-                LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
-                return new DateRange(startOfDay, endOfDay);
-            }
-            case WEEKLY -> {
-                LocalDateTime startOfWeek = date.with(DayOfWeek.MONDAY).atStartOfDay();
-                LocalDateTime endOfWeek = startOfWeek.plusWeeks(1).minusNanos(1);
-                return new DateRange(startOfWeek, endOfWeek);
-            }
-            case MONTHLY -> {
-                LocalDateTime startOfMonth = date.withDayOfMonth(1).atStartOfDay();
-                LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
-                return new DateRange(startOfMonth, endOfMonth);
-            }
-        }
-        throw new IllegalArgumentException("지원하지 않는 기간입니다: " + period);
-    }
 
-    private List<RankingDto> calculateRankings(LocalDateTime startDate, LocalDateTime endDate) {
+    private List<MemberRankingDto> calculateRankings(LocalDateTime startDate, LocalDateTime endDate) {
         List<SolvedProblem> solvedProblems = solvedProblemRepository
                 .findBySolvedDateBetweenAndIsFirstSolved(startDate, endDate, true);
 
@@ -90,7 +71,7 @@ public class MemberRankingService {
     /**
      * 통계 데이터로부터 랭킹 계산
      */
-    private List<RankingDto> calculateRankingFromStats(Map<Member, MemberStats> memberStatsMap) {
+    private List<MemberRankingDto> calculateRankingFromStats(Map<Member, MemberStats> memberStatsMap) {
         // 점수 기준 내림차순
         List<Map.Entry<Member, MemberStats>> sortedEntries = memberStatsMap.entrySet()
                 .stream()
@@ -99,7 +80,7 @@ public class MemberRankingService {
                 .toList();
 
 
-        List<RankingDto> rankings = new ArrayList<>();
+        List<MemberRankingDto> rankings = new ArrayList<>();
         int currentRank = 1;
         int previousScore = Integer.MAX_VALUE;
         int sameRankCount = 0;
@@ -119,21 +100,15 @@ public class MemberRankingService {
             }
             previousScore = score;
 
-            RankingDto rankingDto = RankingDto.of(
+            MemberRankingDto memberRankingDto = MemberRankingDto.of(
                     member,
                     score,
                     currentRank,
                     stats.SolvedCount()
             );
-            rankings.add(rankingDto);
+            rankings.add(memberRankingDto);
         }
         return rankings;
-    }
-
-    /**
-     * 날짜 범위를 표현하는 레코드
-     */
-    private record DateRange(LocalDateTime startDate, LocalDateTime endDate) {
     }
 
     /**

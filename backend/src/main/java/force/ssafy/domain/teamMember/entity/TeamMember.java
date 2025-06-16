@@ -4,8 +4,10 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.entity.MemberRole;
 import force.ssafy.domain.team.entity.Team;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class TeamMember {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,7 +1,7 @@
 package force.ssafy.domain.ranking.controller.dto.response;
 
 import force.ssafy.domain.ranking.controller.dto.RankingPeriod;
-import force.ssafy.domain.ranking.service.dto.RankingDto;
+import force.ssafy.domain.ranking.service.dto.MemberRankingDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -12,9 +12,9 @@ public record RankingResponse(
         LocalDateTime endDate,
         RankingPeriod period,
         Integer totalParticipants,
-        List<RankingDto> rankings
+        List<MemberRankingDto> rankings
 ) {
-    public static RankingResponse of(List<RankingDto> rankings,
+    public static RankingResponse of(List<MemberRankingDto> rankings,
                                      LocalDateTime startDate,
                                      LocalDateTime endDate,
                                      RankingPeriod period) {
