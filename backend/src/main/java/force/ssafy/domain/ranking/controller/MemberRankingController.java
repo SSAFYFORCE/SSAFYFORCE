@@ -3,10 +3,8 @@ package force.ssafy.domain.ranking.controller;
 import force.ssafy.domain.ranking.controller.dto.RankingPeriod;
 import force.ssafy.domain.ranking.controller.dto.response.RankingResponse;
 import force.ssafy.domain.ranking.service.MemberRankingService;
-import force.ssafy.domain.ranking.service.dto.RankingDto;
 
 import java.time.*;
-import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -15,12 +15,16 @@
             type="text"
             placeholder="문제 제목이나 번호로 검색..."
             class="search-input"
-            @input="handleSearch"
+            @keyup.enter="applyFilters"
           />
+          <button class="search-btn" @click="applyFilters">
+            <font-awesome-icon :icon="['fas', 'search']" />
+            검색
+          </button>
         </div>
 
         <div class="filter-controls">
-          <select v-model="selectedTier" @change="applyFilters" class="filter-select">
+          <select v-model="selectedTier" class="filter-select">
             <option value="">모든 티어</option>
             <option value="Bronze V">Bronze V</option>
             <option value="Bronze IV">Bronze IV</option>
@@ -54,13 +58,13 @@
             <option value="Ruby I">Ruby I</option>
           </select>
 
-          <select v-model="selectedSolvedStatus" @change="applyFilters" class="filter-select">
+          <select v-model="selectedSolvedStatus" class="filter-select">
             <option value="">모든 문제</option>
             <option :value="true">해결한 문제</option>
             <option :value="false">해결하지 않은 문제</option>
           </select>
 
-          <select v-model="selectedAlgorithm" @change="applyFilters" class="filter-select">
+          <select v-model="selectedAlgorithm" class="filter-select">
             <option value="">모든 알고리즘</option>
             <option value="구현">구현</option>
             <option value="수학">수학</option>
@@ -110,7 +114,7 @@
 
             <div class="problem-algorithms">
               <span v-for="algorithm in problem.algorithms" :key="algorithm" class="algorithm-tag">
-                {{ algorithm }}
+                {{ algorithm.name }}
               </span>
             </div>
 
@@ -118,6 +122,55 @@
               <a :href="problem.url" target="_blank" class="btn btn-primary"> 문제 풀기 </a>
             </div>
           </div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination">
+          <button class="pagination-btn" :disabled="currentPage === 0" @click="changePage(0)">
+            &lt;&lt;
+          </button>
+
+          <button
+            v-for="page in displayPages"
+            :key="page"
+            class="pagination-btn"
+            :class="{ active: page - 1 === currentPage }"
+            @click="changePage(page - 1)"
+          >
+            {{ page }}
+          </button>
+
+          <button
+            class="pagination-btn"
+            :disabled="currentPage + 10 >= totalPages"
+            @click="changePage(currentPage + 10)"
+          >
+            +10
+          </button>
+
+          <button
+            class="pagination-btn"
+            :disabled="currentPage + 100 >= totalPages"
+            @click="changePage(currentPage + 100)"
+          >
+            +100
+          </button>
+
+          <button
+            class="pagination-btn"
+            :disabled="currentPage + 500 >= totalPages"
+            @click="changePage(currentPage + 500)"
+          >
+            +500
+          </button>
+
+          <button
+            class="pagination-btn"
+            :disabled="currentPage === totalPages - 1"
+            @click="changePage(totalPages - 1)"
+          >
+            &gt;&gt;
+          </button>
         </div>
       </div>
 
@@ -154,22 +207,43 @@ const searchQuery = ref('')
 const selectedTier = ref('')
 const selectedSolvedStatus = ref('')
 const selectedAlgorithm = ref('')
+const currentPage = ref(0)
+const totalPages = ref(0)
+const pageSize = 15
 
 // 계산된 속성
 const solvedCount = computed(() => problems.value.filter((p) => p.isSolved).length)
 const unsolvedCount = computed(() => problems.value.filter((p) => !p.isSolved).length)
 const totalProblems = computed(() => problems.value.length)
 
+// 페이지네이션 표시 페이지 계산
+const displayPages = computed(() => {
+  const pages = []
+  const maxDisplay = 5
+  let start = Math.max(1, currentPage.value + 1 - Math.floor(maxDisplay / 2))
+  let end = Math.min(totalPages.value, start + maxDisplay - 1)
+
+  if (end - start + 1 < maxDisplay) {
+    start = Math.max(1, end - maxDisplay + 1)
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // 티어별 색상을 반환하는 함수
 const getTierColor = (tier) => {
-  const tierName = tier.split(' ')[0].toLowerCase()
+  const tierName = tier.split(' ')[0][0]
   const colors = {
-    ruby: '#ff0062',
-    diamond: '#00b4fc',
-    platinum: '#27e2a4',
-    gold: '#ec9a00',
-    silver: '#435f7a',
-    bronze: '#ad5600',
+    R: '#ff0062',
+    D: '#00b4fc',
+    P: '#27e2a4',
+    G: '#ec9a00',
+    S: '#435f7a',
+    B: '#ad5600',
     unrated: '#2d2d2d',
   }
   return { color: colors[tierName] || '#2d2d2d' }
@@ -184,9 +258,12 @@ const loadProblems = async () => {
       tier: selectedTier.value,
       solvedStatus: selectedSolvedStatus.value,
       algorithm: selectedAlgorithm.value,
+      page: currentPage.value,
+      size: pageSize,
     }
     const data = await fetchProblems(filters)
-    problems.value = data
+    problems.value = data.content
+    totalPages.value = data.totalPages
   } catch (error) {
     console.error('문제를 불러오는 중 오류 발생:', error)
     problems.value = []
@@ -195,13 +272,15 @@ const loadProblems = async () => {
   }
 }
 
-// 검색 처리
-const handleSearch = () => {
-  applyFilters()
+// 페이지 변경
+const changePage = (page) => {
+  currentPage.value = page
+  loadProblems()
 }
 
 // 필터 적용
 const applyFilters = () => {
+  currentPage.value = 0
   loadProblems()
 }
 
@@ -251,10 +330,12 @@ onMounted(() => {
 
 .search-container {
   margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1;
   padding: 0.75rem 1rem;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -267,10 +348,29 @@ onMounted(() => {
   box-shadow: 0 0 0 2px var(--samsung-blue-alpha);
 }
 
+.search-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--samsung-blue);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.search-btn:hover {
+  background: var(--samsung-blue-dark);
+}
+
 .filter-controls {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .filter-select {
@@ -474,5 +574,44 @@ onMounted(() => {
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 페이지네이션 스타일 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.pagination-btn {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #ccc;
+}
+
+.pagination-btn.active {
+  background: var(--samsung-blue);
+  color: white;
+  border-color: var(--samsung-blue);
+}
+
+.pagination-btn:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
 }
 </style>
