@@ -13,6 +13,8 @@ import force.ssafy.domain.problemAlgorithm.repository.ProblemAlgorithmRepository
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,18 +33,14 @@ public class ProblemService {
 
     // ProblemCrawlService에서 ProblemService를 호출 중임
 
-    public List<ProblemGetResponse> findAll() {
+    public Page<ProblemGetResponse> findAll(Pageable pageable) {
         log.info("selectAllProblems 호출");
 
-        List<ProblemGetResponse> problemGetResponses = new ArrayList<>();
-
-        List<Problem> problems = problemRepository.findAll();
-        for (Problem p : problems) {
+        Page<Problem> problems = problemRepository.findAll(pageable);
+        return problems.map(p -> {
             List<AlgorithmGetResponse> algorithmGetResponses = extractAlgorithmResponseFromEntity(p.getProblemAlgorithms());
-            problemGetResponses.add(ProblemGetResponse.of(p, algorithmGetResponses));
-        }
-
-        return problemGetResponses;
+            return ProblemGetResponse.of(p, algorithmGetResponses);
+        });
     }
 
     @Transactional
