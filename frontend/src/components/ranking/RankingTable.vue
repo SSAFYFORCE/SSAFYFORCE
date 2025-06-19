@@ -1,310 +1,454 @@
-<!-- src/components/ranking/RankingTable.vue -->
 <template>
   <div class="ranking-table-container">
-    <h2 class="table-title">{{ title }}</h2>
-    <div class="ranking-table">
-      <div class="table-header">
-        <div class="col-rank">순위</div>
-        <div class="col-user">{{ type === 'individual' ? '사용자' : '팀' }}</div>
-        <div class="col-tier">티어</div>
-        <div class="col-rating">레이팅</div>
-      </div>
+    <h2 v-if="title" class="table-title">{{ title }}</h2>
 
-      <div v-if="loading" class="loading">
-        <font-awesome-icon :icon="['fas', 'spinner']" spin />
-        데이터를 불러오는 중...
-      </div>
+    <div v-if="loading" class="loading">
+      <font-awesome-icon :icon="['fas', 'spinner']" spin />
+      <span>랭킹을 불러오는 중...</span>
+    </div>
 
-      <div v-else-if="rankings.length === 0" class="no-data">랭킹 데이터가 없습니다.</div>
+    <div v-else-if="rankings.length === 0" class="no-data">랭킹 데이터가 없습니다.</div>
 
-      <template v-else>
-        <div
-          v-for="item in rankings"
-          :key="item.id"
-          :class="['table-row', { 'current-user': item.isCurrent }]"
-        >
-          <div class="col-rank">
-            <span v-if="item.rank === 1" class="first-place-crown">👑</span>
-            <span :class="{ 'first-place-text': item.rank === 1 }">{{ item.rank }}</span>
-          </div>
-          <div class="col-user">
-            <div class="user-info">
-              <div class="user-image-container">
-                <img
-                  :src="type === 'individual' ? item.profileImage : item.teamImage"
-                  :alt="type === 'individual' ? item.username : item.teamName"
-                  :class="{ 'first-place-image': item.rank === 1 }"
-                />
-                <div v-if="item.rank === 1" class="first-place-glow"></div>
-              </div>
-              <span :class="{ 'first-place-name': item.rank === 1 }">
-                {{ type === 'individual' ? item.username : item.teamName }}
+    <div v-else class="ranking-cards-grid">
+      <div
+        v-for="item in displayRankings"
+        :key="item.id"
+        :class="['ranking-card', { 'first-place-card': item.rank === 1 }]"
+        @click="handleRowClick(item)"
+      >
+        <div v-if="item.rank === 1" class="top-ranking-badge">
+          <span class="rank-number">1</span>
+        </div>
+        <div v-else class="normal-ranking-badge">
+          <span class="rank-number">{{ item.rank }}</span>
+        </div>
+
+        <div class="card-content">
+          <div class="user-profile-section">
+            <div class="user-image-wrapper">
+              <img
+                :src="item.profileImage || '/default-profile.png'"
+                :alt="type === 'member' ? item.memberName : item.teamName"
+                class="profile-image"
+              />
+            </div>
+            <div class="user-text-info">
+              <span class="user-name">{{
+                type === 'member' ? item.memberName : item.teamName
+              }}</span>
+              <span class="user-score-display">
+                점수:
+                <span class="score-value">{{
+                  type === 'member' ? formatScore(item.score) : formatScore(item.totalScore)
+                }}</span>
               </span>
             </div>
           </div>
-          <div class="col-tier">
-            <span :style="getTierColor(item.tier)" class="font-medium">
-              {{ item.tier }}
-            </span>
+
+          <div v-if="item.rank === 1" class="first-place-details">
+            <div class="detail-item">
+              <span class="detail-label">해결 문제:</span>
+              <span class="detail-value">{{
+                type === 'member' ? item.solvedCount : item.totalSolvedCount
+              }}</span>
+            </div>
+            <div v-if="type === 'team'" class="team-extra-info">
+              <div class="detail-item">
+                <span class="detail-label">멤버:</span>
+                <span class="stat-value"
+                  >{{ item.activeMemberCount }}/{{ item.teamMemberCount }}</span
+                >
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">평균:</span>
+                <span class="stat-value">{{ formatScore(item.averageScore) }}</span>
+              </div>
+            </div>
           </div>
-          <div class="col-rating">{{ item.rating }}</div>
         </div>
-      </template>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted, defineProps } from 'vue'
-import { fetchRankings } from '@/utils/datatransferutil'
+import { computed, defineProps, defineEmits } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   period: {
     type: String,
-    default: 'daily',
-    validator: (value) => ['daily', 'weekly', 'monthly'].includes(value),
+    default: 'DAILY',
   },
   type: {
-    type: String,
-    default: 'individual',
-    validator: (value) => ['individual', 'team'].includes(value),
+    type: String, // 'member' 또는 'team'
+    default: 'member',
+  },
+  rankings: {
+    type: Array,
+    default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
   title: {
     type: String,
-    default: '랭킹',
+    default: '',
+  },
+  limit: {
+    type: Number,
+    default: null,
+  },
+  showFull: {
+    type: Boolean,
+    default: false,
   },
 })
 
-const rankings = ref([])
-const loading = ref(true)
+const emit = defineEmits(['user-click'])
+const router = useRouter()
 
-// 티어별 색상을 반환하는 함수
-const getTierColor = (tier) => {
-  const tierName = tier.split(' ')[0].toLowerCase()
-  const colors = {
-    ruby: '#ff0062',
-    diamond: '#00b4fc',
-    platinum: '#27e2a4',
-    gold: '#ec9a00',
-    silver: '#435f7a',
-    bronze: '#ad5600',
-    unrated: '#2d2d2d',
+const displayRankings = computed(() => {
+  if (props.limit) {
+    return props.rankings.slice(0, props.limit)
   }
-  return { color: colors[tierName] || '#2d2d2d' }
-}
-const loadRankings = async () => {
-  loading.value = true
-  try {
-    const data = await fetchRankings(props.period, props.type)
-    rankings.value = data
-  } catch (error) {
-    console.error('랭킹 데이터 로드 중 오류 발생:', error)
-    rankings.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-// period 또는 type이 변경될 때마다 랭킹 데이터 다시 로드
-watchEffect(() => {
-  loadRankings()
+  return props.rankings
 })
 
-onMounted(() => {
-  loadRankings()
-})
+const handleRowClick = (item) => {
+  if (props.type === 'member') {
+    router.push(`/profile/${item.memberId || item.id}`)
+  } else {
+    router.push(`/teams/${item.teamId || item.id}`)
+  }
+  emit('user-click', item)
+}
+
+const formatScore = (score) => {
+  if (typeof score === 'number') {
+    return score.toLocaleString()
+  }
+  return score || '0'
+}
 </script>
 
 <style scoped>
+/* 이전 스타일 유지 */
 .ranking-table-container {
-  width: 100%;
-  max-width: 600px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  margin-bottom: 2rem;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
 }
 
 .table-title {
-  padding: 1rem;
-  font-size: 1.2rem;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #eee;
+  background: none;
+  color: #333;
+  padding: 1.5rem 0;
   margin: 0;
-}
-
-.ranking-table {
-  width: 100%;
-}
-
-.table-header {
-  display: flex;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #eee;
-  font-weight: 600;
-}
-
-.table-row {
-  display: flex;
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  transition: background-color 0.2s;
-}
-
-.table-row:hover {
-  background-color: #f9f9f9;
-}
-
-.table-row.current-user {
-  background-color: var(--samsung-blue-alpha);
-}
-
-/* 1등 강조 스타일 */
-.table-row.first-place {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 215, 0, 0.2) 0%,
-    rgba(255, 223, 0, 0.15) 50%,
-    rgba(255, 215, 0, 0.1) 100%
-  );
-  border: 2px solid rgba(255, 215, 0, 0.5);
-  position: relative;
-  transform: scale(1.03);
-  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
-  animation: firstPlaceGlow 2s ease-in-out infinite;
-  z-index: 1;
-}
-
-@keyframes firstPlaceGlow {
-  0%,
-  100% {
-    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
-    transform: scale(1.03);
-  }
-  50% {
-    box-shadow: 0 12px 35px rgba(255, 215, 0, 0.5);
-    transform: scale(1.04);
-  }
-}
-
-.first-place-crown {
-  font-size: 1.4em;
-  margin-right: 0.5rem;
-  animation: crownFloat 1.5s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.5));
-}
-
-@keyframes crownFloat {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-5deg);
-  }
-  50% {
-    transform: translateY(-5px) rotate(5deg);
-  }
-}
-
-.first-place-text {
-  font-weight: 900;
-  color: #daa520;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 1.2em;
-}
-
-.user-image-container {
-  position: relative;
-  display: inline-block;
-}
-
-.first-place-image {
-  border: 3px solid #ffd700;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
-  animation: imageGlow 1.8s ease-in-out infinite;
-}
-
-@keyframes imageGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(255, 215, 0, 1);
-  }
-}
-
-.first-place-glow {
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  background: conic-gradient(from 0deg, #ffd700, #ffa500, #ff8c00, #ffd700);
-  border-radius: 50%;
-  z-index: -1;
-  animation: spin 4s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.first-place-name {
-  font-weight: 800;
-  color: #b8860b;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-  font-size: 1.05em;
-}
-
-.col-rank {
-  width: 15%;
-  text-align: center;
-  font-weight: 600;
-}
-
-.col-user {
-  width: 45%;
-}
-
-.col-tier {
-  width: 20%;
-}
-
-.col-rating {
-  width: 20%;
-  text-align: right;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.user-info img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
+  font-size: 1.5rem;
+  text-align: left;
+  font-weight: 700;
 }
 
 .loading,
 .no-data {
-  padding: 2rem;
   text-align: center;
-  color: #757575;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
 }
 
-.loading {
+.loading svg {
+  font-size: 2.5rem;
+  color: var(--samsung-blue);
+}
+
+.ranking-cards-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+.ranking-cards-grid > .ranking-card:first-child {
+  grid-column: 1 / -1;
+}
+
+.ranking-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
   display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ranking-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ranking-card.first-place-card {
+  background: linear-gradient(135deg, #f7f7f7, #ececec);
+  border: 1px solid #ddd;
+  padding: 1.5rem;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+}
+
+.top-ranking-badge,
+.normal-ranking-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-weight: 700;
+  color: white;
+  font-size: 1.2rem;
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.top-ranking-badge {
+  background: linear-gradient(45deg, #ffc107, #ff9800);
+  width: 55px;
+  height: 55px;
+  font-size: 1.5rem;
+}
+
+.normal-ranking-badge {
+  background-color: #a0a0a0;
+}
+
+.rank-number {
+  z-index: 1;
+}
+
+.card-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
   gap: 1rem;
+}
+
+.first-place-card .card-content {
+  align-items: center;
+}
+
+.user-profile-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.first-place-card .user-profile-section {
+  flex-direction: column;
+  text-align: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.user-image-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.first-place-card .user-image-wrapper {
+  width: 80px;
+  height: 80px;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #eee;
+  z-index: 2;
+  position: relative;
+}
+
+.user-text-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  min-width: 0;
+}
+
+.first-place-card .user-text-info {
+  text-align: center;
+}
+
+.user-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.first-place-card .user-name {
+  font-size: 1.5rem;
+}
+
+.user-score-display {
+  font-size: 0.9rem;
+  color: #777;
+  display: flex;
+  gap: 0.5rem; /* "점수:"와 값 사이 간격 */
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-value {
+  font-weight: 600;
+  color: var(--samsung-blue);
+}
+
+.first-place-details {
+  margin-top: 1.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+}
+
+/* 상세 정보 라벨과 값 간격 조정 */
+.detail-item {
+  display: flex;
+  /* justify-content: space-between; 제거 */
+  gap: 0.5rem; /* 라벨과 값 사이의 간격 줄임 */
+  width: 100%;
+  max-width: 250px;
+  font-size: 0.95rem;
+}
+
+.detail-label {
+  color: #555;
+  font-weight: 500;
+  flex-shrink: 0; /* 라벨이 줄어들지 않도록 */
+}
+
+.detail-value {
+  font-weight: 600;
+  color: #333;
+  flex-grow: 1; /* 값이 남은 공간을 차지하도록 */
+  text-align: right; /* 값을 오른쪽에 정렬 */
+}
+
+.team-extra-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.team-stat {
+  /* detail-item과 동일하게 적용 */
+  display: flex;
+  /* justify-content: space-between; 제거 */
+  gap: 0.5rem; /* 라벨과 값 사이의 간격 줄임 */
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+.stat-label {
+  color: #555;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #333;
+  flex-grow: 1;
+  text-align: right;
+}
+
+/* 반응형 디자인 */
+@media (min-width: 769px) {
+  .ranking-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking-card:not(.first-place-card) {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .ranking-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking-card {
+    padding: 1rem;
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+  }
+
+  .top-ranking-badge,
+  .normal-ranking-badge {
+    position: static;
+    margin-right: 1rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  .top-ranking-badge {
+    width: 50px;
+    height: 50px;
+    font-size: 1.3rem;
+  }
+
+  .ranking-card.first-place-card {
+    flex-direction: column;
+  }
+
+  .user-image-wrapper {
+    width: 50px;
+    height: 50px;
+  }
+  .first-place-card .user-image-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+  .user-name {
+    font-size: 1.1rem;
+  }
+  .first-place-card .user-name {
+    font-size: 1.3rem;
+  }
+
+  .first-place-details {
+    padding: 0.75rem;
+  }
 }
 </style>

@@ -1,7 +1,5 @@
-<!-- src/views/HomeView.vue -->
 <template>
   <div class="home">
-    <!-- 배너 섹션 -->
     <section class="banner-section">
       <div class="banner-content">
         <h1>알고리즘 문제 해결 능력을 향상시키세요</h1>
@@ -12,35 +10,33 @@
         </div>
       </div>
     </section>
-    
-    <!-- 랭킹 섹션 -->
+
     <section class="ranking-section">
       <h2 class="section-title">랭킹</h2>
-      
-      <!-- 랭킹 필터 컴포넌트 -->
-      <RankingFilter 
-        @update:period="period = $event"
-        @update:type="type = $event"
-      />
-      
-      <div class="rankings-container">
-        <!-- 개인 랭킹 테이블 -->
-        <RankingTable 
-          v-if="type === 'individual'"
-          :period="period"
-          type="individual"
-          title="개인 랭킹"
+
+      <RankingFilter :show-type-filter="false" @update:period="handlePeriodChange" />
+
+      <div class="rankings-grid">
+        <RankingTable
+          :period="selectedPeriod"
+          type="member"
+          :rankings="memberRankings"
+          :loading="loadingMember"
+          :limit="5"
+          title="개인"
         />
-        
-        <!-- 팀 랭킹 테이블 -->
-        <RankingTable 
-          v-else
-          :period="period"
+
+        <RankingTable
+          :period="selectedPeriod"
           type="team"
-          title="팀 랭킹"
+          :rankings="teamRankings"
+          :loading="loadingTeam"
+          :limit="5"
+          title="팀"
+          :show-full="true"
         />
       </div>
-      
+
       <div class="view-more">
         <router-link to="/ranking" class="btn btn-outline">전체 랭킹 보기</router-link>
       </div>
@@ -49,16 +45,88 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import RankingFilter from '@/components/ranking/RankingFilter.vue';
-import RankingTable from '@/components/ranking/RankingTable.vue';
+import { ref, onMounted, watch } from 'vue'
+import { rankingApi } from '@/api/rankingApi.js'
+import RankingFilter from '@/components/ranking/RankingFilter.vue'
+import RankingTable from '@/components/ranking/RankingTable.vue'
 
 // 상태 정의
-const period = ref('daily');
-const type = ref('individual');
+const selectedPeriod = ref('DAILY')
+const selectedDate = ref(null)
+const memberRankings = ref([])
+const teamRankings = ref([])
+const loadingMember = ref(false)
+const loadingTeam = ref(false)
+const error = ref('')
+
+// 기간 필터 변경 핸들러
+const handlePeriodChange = (period) => {
+  const periodMap = {
+    daily: 'DAILY',
+    weekly: 'WEEKLY',
+    monthly: 'MONTHLY',
+  }
+  selectedPeriod.value = periodMap[period] || 'DAILY'
+  loadAllRankings()
+}
+
+// 개인 랭킹과 팀 랭킹 데이터를 모두 로드하는 함수
+const loadAllRankings = async () => {
+  loadingMember.value = true
+  loadingTeam.value = true
+  error.value = ''
+
+  try {
+    const memberResponse = await rankingApi.getRanking(
+      'member',
+      selectedPeriod.value,
+      selectedDate.value,
+    )
+    if (memberResponse.data && Array.isArray(memberResponse.data.rankings)) {
+      memberRankings.value = memberResponse.data.rankings
+    } else {
+      memberRankings.value = []
+    }
+  } catch (err) {
+    console.error('개인 랭킹 로드 오류:', err)
+    error.value = '개인 랭킹 데이터를 불러오는 중 오류가 발생했습니다.'
+    memberRankings.value = []
+  } finally {
+    loadingMember.value = false
+  }
+
+  try {
+    const teamResponse = await rankingApi.getRanking(
+      'team',
+      selectedPeriod.value,
+      selectedDate.value,
+    )
+    if (teamResponse.data && Array.isArray(teamResponse.data.rankings)) {
+      teamRankings.value = teamResponse.data.rankings
+    } else {
+      teamRankings.value = []
+    }
+  } catch (err) {
+    console.error('팀 랭킹 로드 오류:', err)
+    error.value =
+      (error.value ? error.value + '\n' : '') + '팀 랭킹 데이터를 불러오는 중 오류가 발생했습니다.'
+    teamRankings.value = []
+  } finally {
+    loadingTeam.value = false
+  }
+}
+
+onMounted(() => {
+  loadAllRankings()
+})
+
+watch(selectedPeriod, () => {
+  loadAllRankings()
+})
 </script>
 
 <style scoped>
+/* 이전 HomeView.vue의 스타일과 동일 */
 .home {
   padding-bottom: 4rem;
 }
@@ -66,11 +134,13 @@ const type = ref('individual');
 /* 배너 섹션 스타일 */
 .banner-section {
   height: 500px;
-  background: linear-gradient(45deg, 
-    var(--samsung-blue), 
-    var(--samsung-blue-light), 
-    var(--samsung-blue-dark), 
-    var(--samsung-blue));
+  background: linear-gradient(
+    45deg,
+    var(--samsung-blue),
+    var(--samsung-blue-light),
+    var(--samsung-blue-dark),
+    var(--samsung-blue)
+  );
   background-size: 400% 400%;
   animation: gradientMove 8s ease infinite;
   display: flex;
@@ -80,7 +150,6 @@ const type = ref('individual');
   overflow: hidden;
 }
 
-/* 그라데이션 애니메이션 */
 @keyframes gradientMove {
   0% {
     background-position: 0% 50%;
@@ -93,7 +162,6 @@ const type = ref('individual');
   }
 }
 
-/* 배너 위에 떠다니는 도형들 */
 .banner-section::before {
   content: '';
   position: absolute;
@@ -105,7 +173,6 @@ const type = ref('individual');
   animation: float 20s linear infinite;
 }
 
-/* 떠다니는 애니메이션 */
 @keyframes float {
   0% {
     transform: translateX(-100px);
@@ -187,25 +254,44 @@ const type = ref('individual');
 
 /* 랭킹 섹션 스타일 */
 .ranking-section {
-  max-width: 1200px;
+  max-width: 60%;
   margin: 0 auto;
   padding: 0 2rem;
+  box-sizing: border-box;
 }
 
 .section-title {
-  text-align: center;
-  font-size: 2rem;
-  margin-bottom: 2rem;
+  text-align: left;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
 }
 
-.rankings-container {
-  display: flex;
-  justify-content: center;
+.rankings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
   margin-bottom: 2rem;
 }
 
 .view-more {
   text-align: center;
   margin-top: 2rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .ranking-section {
+    max-width: 80%;
+  }
+}
+
+@media (max-width: 768px) {
+  .ranking-section {
+    max-width: 95%;
+    padding: 0 1rem;
+  }
+  .rankings-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
