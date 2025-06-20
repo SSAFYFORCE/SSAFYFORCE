@@ -15,4 +15,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  // GitHub Pages 배포를 위한 설정
+  base: process.env.NODE_ENV === 'production' ? '/SSAFYFORCE/' : '/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  }
 })
