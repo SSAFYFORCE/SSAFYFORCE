@@ -7,7 +7,7 @@
         <p>함께 성장할 팀을 찾아보세요</p>
       </div>
 
-      <!-- 검색 및 필터 섹션 -->
+      <!-- 검색 및 필터 섹션 (필요 시 유지) -->
       <div class="search-filter-section">
         <div class="search-container">
           <input
@@ -15,27 +15,8 @@
             type="text"
             placeholder="팀 이름이나 설명으로 검색..."
             class="search-input"
-            @input="handleSearch"
+            @input="applyFilters"
           />
-        </div>
-
-        <div class="filter-controls">
-          <select v-model="selectedTag" @change="applyFilters" class="filter-select">
-            <option value="">모든 태그</option>
-            <option value="초보자">초보자</option>
-            <option value="중급">중급</option>
-            <option value="고급">고급</option>
-            <option value="스터디">스터디</option>
-            <option value="경쟁 프로그래밍">경쟁 프로그래밍</option>
-            <option value="코딩테스트">코딩테스트</option>
-            <option value="취업준비">취업준비</option>
-          </select>
-
-          <label class="checkbox-container">
-            <input v-model="availableOnly" type="checkbox" @change="applyFilters" />
-            <span class="checkmark"></span>
-            가입 가능한 팀만 보기
-          </label>
         </div>
       </div>
 
@@ -46,7 +27,9 @@
           <span>팀을 불러오는 중...</span>
         </div>
 
-        <div v-else-if="teams.length === 0" class="no-teams">검색 조건에 맞는 팀이 없습니다.</div>
+        <div v-else-if="teams.length === 0" class="no-teams">
+          검색 조건에 맞는 팀이 없습니다.
+        </div>
 
         <div v-else class="teams-grid">
           <div
@@ -57,9 +40,6 @@
           >
             <div class="team-header">
               <h3 class="team-name">{{ team.name }}</h3>
-              <div class="team-tier" :style="getTierColor(team.tier)">
-                {{ team.tier }}
-              </div>
             </div>
 
             <p class="team-description">{{ team.description }}</p>
@@ -67,40 +47,22 @@
             <div class="team-stats">
               <div class="stat-item">
                 <span class="stat-label">멤버</span>
-                <span class="stat-value"> {{ team.memberCount }}/{{ team.maxMembers }} </span>
+                <span class="stat-value">{{ team.memberCount }}명</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">평균 레이팅</span>
-                <span class="stat-value">{{ team.totalRating }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">리더</span>
-                <span class="stat-value">{{ team.leader }}</span>
-              </div>
-            </div>
-
-            <div class="team-tags">
-              <span v-for="tag in team.tags" :key="tag" class="team-tag">
-                {{ tag }}
-              </span>
             </div>
 
             <div class="team-members-preview">
               <h4>멤버 미리보기</h4>
               <div class="members-list">
                 <div
-                  v-for="(member, index) in team.members.slice(0, 3)"
-                  :key="member.username"
+                  v-for="member in team.teamMembers.slice(0, 3)"
+                  :key="member.id"
                   class="member-item"
                 >
-                  <span class="member-name">{{ member.username }}</span>
-                  <span class="member-tier" :style="getTierColor(member.tier)">
-                    {{ member.tier }}
-                  </span>
-                  <span v-if="member.role === 'leader'" class="leader-badge">👑</span>
+                  <span class="member-name">{{ member.nickname }}</span>
                 </div>
-                <div v-if="team.members.length > 3" class="more-members">
-                  +{{ team.members.length - 3 }}명 더
+                <div v-if="team.teamMembers.length > 3" class="more-members">
+                  +{{ team.teamMembers.length - 3 }}명 더
                 </div>
               </div>
             </div>
@@ -109,18 +71,16 @@
               <button
                 v-if="!team.isJoined"
                 @click="handleJoinTeam(team)"
-                :disabled="team.memberCount >= team.maxMembers || joiningTeamId === team.id"
+                :disabled="joiningTeamId === team.id"
                 class="btn btn-primary"
-                :class="{ loading: joiningTeamId === team.id }"
               >
                 <template v-if="joiningTeamId === team.id">
                   <font-awesome-icon :icon="['fas', 'spinner']" spin />
                   가입 중...
                 </template>
-                <template v-else-if="team.memberCount >= team.maxMembers"> 팀이 가득참 </template>
-                <template v-else> 팀 가입하기 </template>
+                <template v-else>팀 가입하기</template>
               </button>
-              <span v-else class="joined-badge"> ✓ 가입된 팀 </span>
+              <span v-else class="joined-badge">✓ 가입된 팀</span>
             </div>
 
             <div class="team-meta">
@@ -133,8 +93,7 @@
       <!-- 팀 생성 버튼 -->
       <div class="create-team-section">
         <router-link to="/teams/create" class="btn btn-secondary">
-          <font-awesome-icon :icon="['fas', 'plus']" />
-          새 팀 만들기
+          <font-awesome-icon :icon="['fas', 'plus']" /> 새 팀 만들기
         </router-link>
       </div>
     </div>
@@ -143,32 +102,21 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchTeams, joinTeam } from '@/utils/datatransferutil'
+import { useRouter } from 'vue-router'
+import { teamApi } from '@/api/teamApi'
+import { useAuthStore } from '@/stores/auth'
 
-// 반응성 데이터
+
 const teams = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
-const selectedTag = ref('')
-const availableOnly = ref(false)
 const joiningTeamId = ref(null)
 
-// 티어별 색상을 반환하는 함수
-const getTierColor = (tier) => {
-  const tierName = tier.split(' ')[0].toLowerCase()
-  const colors = {
-    ruby: '#ff0062',
-    diamond: '#00b4fc',
-    platinum: '#27e2a4',
-    gold: '#ec9a00',
-    silver: '#435f7a',
-    bronze: '#ad5600',
-    unrated: '#2d2d2d',
-  }
-  return { color: colors[tierName] || '#2d2d2d' }
-}
+// Pinia auth store
+const auth = useAuthStore()
+const router = useRouter()
 
-// 날짜 포맷팅 함수
+// 날짜 포맷팅
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR', {
@@ -182,49 +130,57 @@ const formatDate = (dateString) => {
 const loadTeams = async () => {
   loading.value = true
   try {
-    const filters = {
-      searchQuery: searchQuery.value,
-      tag: selectedTag.value,
-      availableOnly: availableOnly.value,
-    }
-    const data = await fetchTeams(filters)
-    teams.value = data
+    const res = await teamApi.fetchTeams()
+    teams.value = res.data.teams
+      .filter(t => t.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
+      .map(t => ({
+        id: t.teamId,
+        name: t.name,
+        description: t.description,
+        memberCount: t.memberCount,
+        createdAt: t.createdAt,
+        teamMembers: t.teamMembers,
+        isJoined: false, // 필요시 로직 수정
+      }))
   } catch (error) {
-    console.error('팀을 불러오는 중 오류 발생:', error)
+    console.error('팀 로드 실패:', error)
     teams.value = []
   } finally {
     loading.value = false
   }
 }
 
-// 검색 처리
-const handleSearch = () => {
-  applyFilters()
-}
-
-// 필터 적용
+// 검색 필터 적용
 const applyFilters = () => {
   loadTeams()
 }
 
 // 팀 가입 처리
 const handleJoinTeam = async (team) => {
+  // 1) 로그인 여부 확인
+  if (!auth.isLoggedIn) {
+    // 로그인 되어 있지 않으면 로그인 페이지로 리다이렉트
+    router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
+    return
+  }
+
+  // 2) 가입 요청
   joiningTeamId.value = team.id
   try {
-    await joinTeam(team.id)
-    // 성공적으로 가입되면 팀 목록을 다시 로드
+    // 백엔드: POST /api/v1/teams/{teamId}/join
+    await teamApi.joinTeam(team.id)
     await loadTeams()
     alert('팀에 성공적으로 가입했습니다!')
   } catch (error) {
-    console.error('팀 가입 중 오류 발생:', error)
-    alert(`팀 가입에 실패했습니다: ${error.message}`)
+    console.error('팀 가입 실패:', error)
+    alert(error.response?.data?.message || '팀 가입에 실패했습니다.')
   } finally {
     joiningTeamId.value = null
   }
 }
 
-// 컴포넌트 마운트 시 팀 목록 로드
-onMounted(() => {
+onMounted(async () => {
+  await auth.checkAuth()
   loadTeams()
 })
 </script>

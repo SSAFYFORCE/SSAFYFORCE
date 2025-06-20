@@ -48,7 +48,7 @@
   <script setup>
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import axios from 'axios'
+  import { teamApi } from '@/api/teamApi'
   
   const router = useRouter()
   
@@ -61,7 +61,7 @@
     loading.value = true
     errorMessage.value = ''
     try {
-      await axios.post('/api/v1/teams', form.value)
+      await teamApi.createTeam(form.value)
       router.push({ name: 'teams' })
     } catch (e) {
       console.error('팀 생성 실패:', e)

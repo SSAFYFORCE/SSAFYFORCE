@@ -4,9 +4,11 @@ import force.ssafy.domain.team.dto.request.TeamCreateRequest;
 import force.ssafy.domain.team.dto.response.TeamListResponse;
 import force.ssafy.domain.team.dto.response.TeamResponse;
 import force.ssafy.domain.team.service.TeamService;
+import force.ssafy.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -44,5 +46,20 @@ public class TeamController {
     public ResponseEntity<Void> save(@RequestBody TeamCreateRequest teamCreateRequest) {
         teamService.save(teamCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    /**
+     * 팀 가입
+     * POST /api/v1/teams/{teamId}/join
+     */
+    @PostMapping("/{teamId}/join")
+    public ResponseEntity<Void> joinTeam(
+            @PathVariable Long teamId,
+            @AuthenticationPrincipal CustomUserDetails userDetails  // 스프링 시큐리티에서 꺼내는 현재 로그인 유저
+    ) {
+
+        Long memberId = userDetails.getMemberId();
+        teamService.joinTeam(memberId, teamId);
+        return ResponseEntity.ok().build();
     }
 }
