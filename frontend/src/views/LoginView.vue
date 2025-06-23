@@ -10,18 +10,18 @@
 
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="form-group">
-            <label for="username">사용자명</label>
+            <label for="solvedAcId">solved.ac ID</label>
             <input
-              id="username"
-              v-model="credentials.username"
+              id="solvedAcId"
+              v-model="credentials.solvedAcId"
               type="text"
-              placeholder="사용자명을 입력하세요"
+              placeholder="solved.ac ID를 입력하세요"
               class="form-input"
-              :class="{ error: errors.username }"
+              :class="{ error: errors.solvedAcId }"
               required
             />
-            <span v-if="errors.username" class="error-message">
-              {{ errors.username }}
+            <span v-if="errors.solvedAcId" class="error-message">
+              {{ errors.solvedAcId }}
             </span>
           </div>
 
@@ -55,12 +55,7 @@
             <a href="#" class="forgot-password">비밀번호를 잊으셨나요?</a>
           </div>
 
-          <button
-            type="submit"
-            :disabled="loading"
-            class="login-button"
-            :class="{ loading: loading }"
-          >
+          <button type="submit" :disabled="loading" class="login-button" :class="{ loading }">
             <template v-if="loading">
               <font-awesome-icon :icon="['fas', 'spinner']" spin />
               로그인 중...
@@ -68,8 +63,8 @@
             <template v-else> 로그인 </template>
           </button>
 
-          <div v-if="errorMessage" class="general-error">
-            {{ errorMessage }}
+          <div v-if="error" class="general-error">
+            {{ error }}
           </div>
         </form>
 
@@ -118,41 +113,43 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { login } from '@/utils/datatransferutil'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
 
 // 반응성 데이터
 const credentials = reactive({
-  username: '',
+  solvedAcId: '',
   password: '',
 })
 
 const errors = reactive({
-  username: '',
+  solvedAcId: '',
   password: '',
 })
 
 const loading = ref(false)
-const errorMessage = ref('')
+const error = ref(route.query.error || '')
 const showPassword = ref(false)
 const rememberMe = ref(false)
 
 // 메서드
 const validateForm = () => {
-  errors.username = ''
+  errors.solvedAcId = ''
   errors.password = ''
 
-  if (!credentials.username) {
-    errors.username = '사용자명을 입력해주세요.'
+  if (!credentials.solvedAcId) {
+    errors.solvedAcId = 'solved.ac ID를 입력해주세요.'
   }
 
   if (!credentials.password) {
     errors.password = '비밀번호를 입력해주세요.'
   }
 
-  return !errors.username && !errors.password
+  return !errors.solvedAcId && !errors.password
 }
 
 const handleLogin = async () => {
@@ -161,25 +158,16 @@ const handleLogin = async () => {
   }
 
   loading.value = true
-  errorMessage.value = ''
+  error.value = ''
 
   try {
-    const user = await login(credentials)
+    await authStore.signIn(credentials)
 
-    // 로그인 성공 시 storage 이벤트를 수동으로 발생시켜 다른 컴포넌트에서 감지할 수 있도록 함
-    window.dispatchEvent(
-      new StorageEvent('storage', {
-        key: 'user',
-        newValue: JSON.stringify(user),
-        url: window.location.href,
-      }),
-    )
-
-    // 로그인 성공 시 홈으로 리다이렉트
-    const redirectPath = router.currentRoute.value.query.redirect || '/'
+    // 로그인 성공 시 리다이렉트
+    const redirectPath = route.query.redirect || '/'
     router.push(redirectPath)
-  } catch (error) {
-    errorMessage.value = error.message
+  } catch (err) {
+    error.value = err.response?.data?.message || '로그인에 실패했습니다.'
   } finally {
     loading.value = false
   }
@@ -187,6 +175,15 @@ const handleLogin = async () => {
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
+}
+
+const handleLogout = async () => {
+  try {
+    await authStore.signOut()
+    router.push('/login')
+  } catch (error) {
+    console.error('로그아웃 실패:', error)
+  }
 }
 </script>
 
