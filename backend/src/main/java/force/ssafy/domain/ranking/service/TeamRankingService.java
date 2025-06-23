@@ -179,7 +179,11 @@ public class TeamRankingService {
             Team team = entry.getKey();
             TeamStats teamStats = entry.getValue();
             double compositeScore = calculateCompositeScore(team, teamStats);
-            teamsWithScore.add(new TeamWithScore(team, teamStats, compositeScore));
+
+            // 점수가 0점인 팀은 제외하고 계산
+            if (compositeScore > 0) {
+                teamsWithScore.add(new TeamWithScore(team, teamStats, compositeScore));
+            }
         }
 
         // 정렬 : 복합 점수 높은 순서
