@@ -32,11 +32,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/sign-in", "/api/v1/auth/sign-up", "/api/v1/auth/refresh").permitAll()
-                        .requestMatchers("/api/v1/solved-ac/verification-code", "/api/v1/solved-ac/verify/**").permitAll()
-                        .requestMatchers("/api/v1/members/check-nickname", "/api/v1/members/password/reset").permitAll()
+                        // 인증이 필요없는 공개 API 엔드포인트
                         .requestMatchers(
-                                // ✅ Swagger 관련 인증 없이 허용
+                                "/api/v1/auth/sign-in",
+                                "/api/v1/auth/sign-up",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/health-check",
+                                "/api/v1/solved-ac/verification-code",
+                                "/api/v1/solved-ac/verify/**",
+                                "/api/v1/members/check-nickname",
+                                "/api/v1/members/password/reset",
+                                // Swagger UI 관련
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs",
@@ -45,10 +51,7 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        .requestMatchers(
-                                //개발 관련 인증 없이 허용
-                                "/api/v1/**"
-                        ).permitAll()
+                        // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -64,8 +67,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost:5173"
+        ));
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+        ));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

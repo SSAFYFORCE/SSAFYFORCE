@@ -13,4 +13,10 @@ public class MemberDto {
     private String profileImage;
     private LocalDateTime createdAt;
     private String solvedAcId;
+    private LocalDateTime lastProblemSyncTime;
+    private boolean verified;
+    private String tier;        // solved.ac 티어 정보
+    private int rating;         // solved.ac 레이팅
+    private int solvedCount;    // 해결한 문제 수
+    private double correctRate; // 정답률
 }

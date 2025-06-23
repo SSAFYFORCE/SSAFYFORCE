@@ -69,12 +69,13 @@ public class Member implements UserDetails {
 
     @Builder
     public Member( String password, String name,
-                  String profileImage, String encryptionKey, String solvedAcId) {
+                  String profileImage, String encryptionKey, String solvedAcId, LocalDateTime lastProblemSyncTime) {
         this.password = password;
         this.name = name;
         this.profileImage = profileImage;
         this.encryptionKey = encryptionKey;
         this.solvedAcId = solvedAcId;
+        this.lastProblemSyncTime = lastProblemSyncTime;
     }
 
     public void verify() {

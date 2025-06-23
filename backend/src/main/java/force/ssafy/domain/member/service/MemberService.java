@@ -8,6 +8,8 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.exception.InvalidPasswordException;
 import force.ssafy.domain.member.exception.MemberNotFoundException;
 import force.ssafy.domain.member.repository.MemberRepository;
+import force.ssafy.domain.solvedac.entity.SolvedAcUserInfo;
+import force.ssafy.domain.solvedac.service.SolvedAcApiService;  // 추가
 import force.ssafy.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,6 +24,7 @@ public class MemberService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SolvedAcApiService solvedAcApiService;
 
     @Override
     public CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -46,12 +49,21 @@ public class MemberService implements UserDetailsService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
 
+        // solved.ac API를 통해 실제 데이터 조회
+        SolvedAcUserInfo solvedAcInfo = solvedAcApiService.getUserInfo(member.getSolvedAcId());
+
         return MemberDto.builder()
                 .id(member.getId())
                 .name(member.getName())
                 .profileImage(member.getProfileImage())
                 .createdAt(member.getCreatedAt())
                 .solvedAcId(member.getSolvedAcId())
+                .lastProblemSyncTime(member.getLastProblemSyncTime())
+                .tier(solvedAcInfo.getTier())
+                .rating(solvedAcInfo.getRating())
+                .solvedCount(solvedAcInfo.getSolvedCount())
+                .correctRate(solvedAcInfo.getCorrectRate())
+                .verified(member.isVerified())
                 .build();
     }
 
@@ -75,7 +87,6 @@ public class MemberService implements UserDetailsService {
     public void updateMemberInfo(Long memberId, MemberUpdateRequest updateDto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다."));
-
 
         member.updateProfile(
                 updateDto.getName(),

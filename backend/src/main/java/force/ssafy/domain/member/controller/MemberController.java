@@ -9,10 +9,12 @@ import force.ssafy.domain.member.service.MemberService;
 import force.ssafy.global.security.userdetails.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/members")
 @RequiredArgsConstructor
@@ -20,14 +22,8 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    /**
-     * 내 정보 조회 API
-     */
-    @GetMapping("/me")
-    public ResponseEntity<MemberDto> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        MemberDto memberDto = memberService.getMemberInfo(userDetails.getMemberId());
-        return ResponseEntity.ok(memberDto);
-    }
+
+
 
     /**
      * 닉네임 중복 확인 API
@@ -70,5 +66,18 @@ public class MemberController {
     public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDetails userDetails) {
         memberService.deleteMember(userDetails.getMemberId());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 내 정보 조회 API
+     */
+    @GetMapping("/me")
+    public ResponseEntity<MemberDto> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("Accessing /me endpoint");
+        log.info("UserDetails: {}", userDetails);
+        log.info("MemberId: {}", userDetails != null ? userDetails.getMemberId() : "null");
+
+        MemberDto memberDto = memberService.getMemberInfo(userDetails.getMemberId());
+        return ResponseEntity.ok(memberDto);
     }
 }
