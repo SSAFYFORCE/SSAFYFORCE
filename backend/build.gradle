@@ -41,6 +41,12 @@ dependencies {
 
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	// WebFlux 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Netty DNS resolver for MacOS
+	implementation 'io.netty:netty-resolver-dns-native-macos:4.1.94.Final:osx-aarch_64'
 }
 
 tasks.named('test') {
