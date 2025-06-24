@@ -2,11 +2,27 @@ spring:
     profiles:
         include: secret
     datasource:
-        url: jdbc:mysql://localhost:3306/ssafyforce
-        username: ssafy
-        password: ssafy
-        driver-class-name: com.mysql.cj.jdbc.Driver
+        meta: # 배치 메타데이터용 DB (ssafyforce_batch)
+            jdbc-url: jdbc:mysql://localhost:3306/ssafyforce_batch?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&serverTimezone=Asia/Seoul
+            username: ssafy
+            password: ssafy
+            driver-class-name: com.mysql.cj.jdbc.Driver
+        data: # 비즈니스 로직용 DB (ssafyforce)
+            jdbc-url: jdbc:mysql://localhost:3306/ssafyforce?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&serverTimezone=Asia/Seoul
+            username: ssafy
+            password: ssafy
+            driver-class-name: com.mysql.cj.jdbc.Driver
 
+    batch:
+        job:
+            enabled: false
+        jdbc:
+            initialize-schema: always
+    task:
+        scheduling:
+            pool:
+                size: 2  # 스케줄링 스레드 풀 크기
+            thread-name-prefix: "batch-scheduler-"
     jpa:
         hibernate:
             ddl-auto: update
