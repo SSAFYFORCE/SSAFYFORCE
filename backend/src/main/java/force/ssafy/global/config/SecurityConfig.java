@@ -42,6 +42,8 @@ public class SecurityConfig {
                                 "/api/v1/solved-ac/verify/**",
                                 "/api/v1/members/check-nickname",
                                 "/api/v1/members/password/reset",
+                                "/api/v1/rankings/**",
+                                "/api/v1/teams/rankings/**",
                                 // Swagger UI 관련
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -67,10 +69,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://ssafyforce.github.io/SSAFYFORCE"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
