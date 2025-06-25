@@ -300,12 +300,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { memberAPI } from '@/utils/api'
-
-const router = useRouter()
-const authStore = useAuthStore()
+import { fetchUserProfile } from '@/utils/datatransferutil'
 
 // 반응성 데이터
 const profile = ref(null)
@@ -386,21 +381,17 @@ const getRelativeTime = (dateString) => {
 const loadProfile = async () => {
   loading.value = true
   try {
-    const response = await memberAPI.getMyProfile()
-    profile.value = response.data
+    const data = await fetchUserProfile()
+    profile.value = data
 
     // 편집 데이터 초기화
-    if (response.data) {
-      editData.bio = response.data.bio || ''
-      editData.github = response.data.github || ''
-      editData.blog = response.data.blog || ''
+    if (data) {
+      editData.bio = data.bio || ''
+      editData.github = data.github || ''
+      editData.blog = data.blog || ''
     }
   } catch (error) {
     console.error('프로필을 불러오는 중 오류 발생:', error)
-    if (error.response?.status === 401) {
-      authStore.clearAuth()
-      router.push('/login')
-    }
   } finally {
     loading.value = false
   }
@@ -442,21 +433,8 @@ const saveProfile = async () => {
 }
 
 // 컴포넌트 마운트 시 프로필 로드
-onMounted(async () => {
-  try {
-    const token = localStorage.getItem('accessToken')
-    if (!token) {
-      router.push('/login')
-      return
-    }
-    await loadProfile()
-  } catch (error) {
-    console.error('프로필 로드 중 에러:', error)
-    if (error.response?.status === 401) {
-      authStore.clearAuth()
-      router.push('/login')
-    }
-  }
+onMounted(() => {
+  loadProfile()
 })
 </script>
 
