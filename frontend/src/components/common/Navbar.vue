@@ -16,10 +16,10 @@
       </div>
     </div>
     <div class="navbar-right">
-      <template v-if="isLoggedIn">
+      <template v-if="authStore.isLoggedIn">
         <div class="profile-container" @click="toggleDropdown">
           <img
-            :src="user?.profileImage || '/profiles/default.png'"
+            :src="authStore.user?.profileImage || '/profiles/default.png'"
             alt="프로필"
             class="profile-image"
           />
@@ -38,14 +38,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { checkAuthStatus, logout } from '@/utils/datatransferutil'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
-const route = useRoute()
-const isLoggedIn = ref(false)
-const user = ref(null)
+const authStore = useAuthStore()
 const showDropdown = ref(false)
 
 const toggleDropdown = () => {
@@ -54,31 +52,11 @@ const toggleDropdown = () => {
 
 const handleLogout = async () => {
   try {
-    await logout()
-    isLoggedIn.value = false
-    user.value = null
+    await authStore.signOut()
     showDropdown.value = false
-    router.push('/')
+    router.push('/login')
   } catch (error) {
     console.error('로그아웃 중 오류 발생:', error)
-  }
-}
-
-// 인증 상태 확인 함수
-const checkLogin = async () => {
-  try {
-    const userData = await checkAuthStatus()
-    if (userData) {
-      isLoggedIn.value = true
-      user.value = userData
-    } else {
-      isLoggedIn.value = false
-      user.value = null
-    }
-  } catch (error) {
-    console.error('인증 상태 확인 중 오류 발생:', error)
-    isLoggedIn.value = false
-    user.value = null
   }
 }
 
@@ -90,30 +68,15 @@ const handleClickOutside = (event) => {
   }
 }
 
-// 라우트 변경 시마다 인증 상태 확인
-watch(route, () => {
-  checkLogin()
-})
-
-// localStorage 변화 감지 (다른 탭에서 로그인/로그아웃 시)
-const handleStorageChange = (event) => {
-  if (event.key === 'user') {
-    checkLogin()
-  }
-}
-
 // 컴포넌트 마운트 시 실행
 onMounted(() => {
-  checkLogin()
   document.addEventListener('click', handleClickOutside)
-  window.addEventListener('storage', handleStorageChange)
 })
 
 // 컴포넌트 언마운트 시 이벤트 리스너 정리
 import { onUnmounted } from 'vue'
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('storage', handleStorageChange)
 })
 </script>
 

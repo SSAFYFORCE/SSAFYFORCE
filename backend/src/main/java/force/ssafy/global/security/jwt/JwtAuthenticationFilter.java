@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String token = resolveToken(request);
+            log.info("Request URI: {}", request.getRequestURI()); // 요청 URI 로그
+            log.info("Token exists: {}", StringUtils.hasText(token)); // 토큰 존재 여부
 
             if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
                 Long memberId = jwtTokenProvider.getMemberIdFromToken(token);
@@ -38,9 +41,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                // 인증 정보가 제대로 설정되었는지 확인
+                Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+                log.info("Authentication set: {}", currentAuth != null);
+                log.info("Principal: {}", currentAuth != null ? currentAuth.getPrincipal() : "null");
+                log.info("Authorities: {}", currentAuth != null ? currentAuth.getAuthorities() : "null");
             }
         } catch (Exception e) {
-            log.error("인증 처리 중 오류 발생: {}", e.getMessage());
+            log.error("인증 처리 중 오류 발생: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

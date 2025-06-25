@@ -9,6 +9,8 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.exception.DuplicateSolvedAcIdException;
 import force.ssafy.domain.member.exception.MemberNotFoundException;
 import force.ssafy.domain.member.repository.MemberRepository;
+import force.ssafy.domain.solvedac.entity.VerificationCode;
+import force.ssafy.domain.solvedac.repository.VerificationCodeRepository;
 import force.ssafy.domain.solvedac.service.SolvedAcService;
 import force.ssafy.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final SolvedAcService solvedAcService;
+    private final VerificationCodeRepository verificationCodeRepository;
 
     /**
      * 회원가입 처리
@@ -39,9 +44,15 @@ public class AuthService {
         }
 
         // solved.ac 인증 확인
-        var verificationResult = solvedAcService.verifyCode(signUpDto.getSolvedAcId());
-        if (!verificationResult.isVerified()) {
-            throw new AuthenticationException("solved.ac 인증에 실패했습니다. 먼저 인증을 완료해주세요.");
+        Optional<VerificationCode> verificationCode = verificationCodeRepository.findById(signUpDto.getSolvedAcId());
+        if (verificationCode.isEmpty()) {
+            throw new AuthenticationException("solved.ac 인증이 필요합니다. 먼저 인증을 완료해주세요.");
+        }
+
+        // 인증 코드 만료 확인
+        if (verificationCode.get().isExpired()) {
+            solvedAcService.deleteVerificationCode(signUpDto.getSolvedAcId());
+            throw new AuthenticationException("인증이 만료되었습니다. 다시 인증을 진행해주세요.");
         }
 
         // 암호화 키 생성
@@ -53,11 +64,16 @@ public class AuthService {
                 .name(signUpDto.getName())
                 .encryptionKey(encryptionKey)
                 .solvedAcId(signUpDto.getSolvedAcId())
+                .lastProblemSyncTime(LocalDateTime.now())
                 .build();
 
-        member.verify(); // 인증 완료 처리
+        member.verify();
+        Member savedMember = memberRepository.save(member);
 
-        return memberRepository.save(member);
+        // 회원가입 완료 후 인증 코드 삭제
+        solvedAcService.deleteVerificationCode(signUpDto.getSolvedAcId());
+
+        return savedMember;
     }
 
     /**

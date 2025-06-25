@@ -71,21 +71,21 @@ public class SolvedAcService {
     @Transactional
     public VerificationResultDto verifyCode(String solvedAcId) {
         try {
-            // 저장된 인증코드 조회
+            // 1. 저장된 인증코드 조회
             Optional<VerificationCode> verificationCodeOpt = verificationCodeRepository.findById(solvedAcId);
 
             if (verificationCodeOpt.isEmpty()) {
                 log.warn("인증코드 조회 실패: solvedAcId={}", solvedAcId);
                 return VerificationResultDto.builder()
                         .verified(false)
-                        .needCodeGeneration(true) // 프론트엔드에서 인증코드 발급 페이지로 리다이렉트하는 플래그
+                        .needCodeGeneration(true)
                         .message("발급된 인증코드가 없습니다. 먼저 인증코드를 발급받으세요.")
                         .build();
             }
 
             VerificationCode verificationCode = verificationCodeOpt.get();
 
-            // 인증코드 만료 여부 확인
+            // 2. 인증코드 만료 여부 확인
             if (verificationCode.isExpired()) {
                 verificationCodeRepository.delete(verificationCode);
                 return VerificationResultDto.builder()
@@ -95,20 +95,16 @@ public class SolvedAcService {
                         .build();
             }
 
-            // 실제 구현에서는 solved.ac API를 호출하여 사용자 프로필의 이름 필드에
-            // 인증코드가 올바르게 설정되었는지 확인
+            // 3. solved.ac 프로필 확인
+            log.info("인증 코드 검증 시작: solvedAcId={}, expectedCode={}", solvedAcId, verificationCode.getCode());
             boolean verified = checkSolvedAcProfile(solvedAcId, verificationCode.getCode());
-
-            if (verified) {
-                // 인증 성공 시 코드 제거
-                verificationCodeRepository.delete(verificationCode);
-            }
 
             return VerificationResultDto.builder()
                     .verified(verified)
-                    .needCodeGeneration(false)
+                    .needCodeGeneration(!verified)
                     .message(verified ? "인증에 성공했습니다." : "인증에 실패했습니다. 프로필 설정을 확인해주세요.")
                     .build();
+
         } catch (Exception e) {
             log.error("인증 검증 중 오류 발생: {}", e.getMessage(), e);
             return VerificationResultDto.builder()
@@ -117,6 +113,13 @@ public class SolvedAcService {
                     .message("인증 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
                     .build();
         }
+    }
+
+    // 인증 코드 삭제 메소드 추가
+    @Transactional
+    public void deleteVerificationCode(String solvedAcId) {
+        verificationCodeRepository.findById(solvedAcId)
+                .ifPresent(verificationCodeRepository::delete);
     }
 
     // 랜덤 인증코드 생성 메서드
@@ -194,6 +197,41 @@ public class SolvedAcService {
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<ProblemItem>>() {})
                 .block(); // Spring MVC에서는 block() 필요
+    }
+
+    /**
+     * solved.ac 프로필 확인만 수행하는 메소드
+     */
+    public boolean checkSolvedAcProfile(String solvedAcId) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    "https://solved.ac/api/v3/user/additional_info?handle={handle}",
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    Map.class,
+                    solvedAcId
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("solved.ac API 호출 실패: {}", response.getStatusCode());
+                return false;
+            }
+
+            Map<String, Object> userData = response.getBody();
+            if (userData == null) {
+                log.error("solved.ac API 응답 데이터가 없습니다.");
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            log.error("solved.ac 프로필 확인 중 오류 발생", e);
+            return false;
+        }
     }
 
 }
