@@ -38,7 +38,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux' // API 호출용 webflux
 	// https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5") // swagger
-
+	implementation 'org.springframework.boot:spring-boot-starter-batch' // 스프링 배치
+	testImplementation 'org.springframework.batch:spring-batch-test' // 스프링 배치 테스트용
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 

@@ -21,6 +21,11 @@ const router = createRouter({
       component: () => import('../views/TeamView.vue'),
     },
     {
+      path: '/teams/create',
+      name: 'team-create',
+      component: () => import('../views/TeamCreateView.vue'),
+    },
+    {
       path: '/ranking',
       name: 'ranking',
       component: () => import('../views/RankingView.vue'),

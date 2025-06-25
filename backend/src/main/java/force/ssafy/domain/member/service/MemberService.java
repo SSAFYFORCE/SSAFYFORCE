@@ -2,6 +2,7 @@ package force.ssafy.domain.member.service;
 
 import force.ssafy.domain.member.dto.request.MemberUpdateRequest;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
+import force.ssafy.domain.member.dto.request.PasswordResetDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
 import force.ssafy.domain.member.entity.Member;
@@ -11,6 +12,7 @@ import force.ssafy.domain.member.repository.MemberRepository;
 import force.ssafy.domain.solvedac.entity.SolvedAcUserInfo;
 import force.ssafy.domain.solvedac.service.SolvedAcApiService;  // 추가
 import force.ssafy.global.security.userdetails.CustomUserDetails;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -93,7 +95,7 @@ public class MemberService implements UserDetailsService {
                 updateDto.getProfileImage()
         );
 
-        memberRepository.save(member);
+        //memberRepository.save(member);
     }
 
     /**
@@ -112,7 +114,20 @@ public class MemberService implements UserDetailsService {
         // 새 비밀번호 설정
         member.updatePassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
 
-        memberRepository.save(member);
+        //memberRepository.save(member);
+    }
+
+
+    /**
+     * 비밀번호 재설정
+     */
+    @Transactional
+    public void resetPassword(PasswordResetDto passwordResetDto) {
+        Member member = memberRepository.findBySolvedAcId(passwordResetDto.getSolvedAcId())
+                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다. "));
+
+        // 새 비밀번호 설정
+        member.updatePassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
     }
 
     /**
