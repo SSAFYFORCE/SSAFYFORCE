@@ -14,7 +14,7 @@ public class MemberProfileResponse {
     private String solvedAcId;
     private LocalDateTime lastProblemSyncTime;
 
-    public static MemberProfileResponse to(Member member) {
+    public static MemberProfileResponse from(Member member) {
         return builder()
                 .profileImage(member.getProfileImage())
                 .name(member.getName())

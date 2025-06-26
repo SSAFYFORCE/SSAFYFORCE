@@ -3,10 +3,7 @@ package force.ssafy.domain.member.controller;
 import force.ssafy.domain.member.dto.request.MemberUpdateRequest;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
 import force.ssafy.domain.member.dto.request.PasswordResetDto;
-import force.ssafy.domain.member.dto.response.MemberDto;
-import force.ssafy.domain.member.dto.response.MemberProfileResponse;
-import force.ssafy.domain.member.dto.response.MemberUpdateResponse;
-import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
+import force.ssafy.domain.member.dto.response.*;
 import force.ssafy.domain.member.service.MemberService;
 import force.ssafy.global.security.userdetails.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -99,6 +96,16 @@ public class MemberController {
     @GetMapping("/{solvedAcId}")
     public ResponseEntity<MemberProfileResponse> getMemberProfile(@PathVariable String solvedAcId) {
         MemberProfileResponse response = memberService.getMemberProfile(solvedAcId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 가입한 팀 목록 조회 API
+     */
+    @GetMapping("/{solvedAcId}/teams")
+    public ResponseEntity<MemberTeamsResponse> getMemberTeams(
+            @PathVariable String solvedAcId) {
+        MemberTeamsResponse response = memberService.getMemberTeams(solvedAcId);
         return ResponseEntity.ok(response);
     }
 }
