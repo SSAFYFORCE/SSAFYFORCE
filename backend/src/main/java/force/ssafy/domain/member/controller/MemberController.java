@@ -4,6 +4,7 @@ import force.ssafy.domain.member.dto.request.MemberUpdateRequest;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
 import force.ssafy.domain.member.dto.request.PasswordResetDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
+import force.ssafy.domain.member.dto.response.MemberProfileResponse;
 import force.ssafy.domain.member.dto.response.MemberUpdateResponse;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
 import force.ssafy.domain.member.service.MemberService;
@@ -90,5 +91,14 @@ public class MemberController {
 
         MemberDto memberDto = memberService.getMemberInfo(userDetails.getMemberId());
         return ResponseEntity.ok(memberDto);
+    }
+
+    /**
+     * 회원 프로필 정보 조회 API
+     */
+    @GetMapping("/{solvedAcId}")
+    public ResponseEntity<MemberProfileResponse> getMemberProfile(@PathVariable String solvedAcId) {
+        MemberProfileResponse response = memberService.getMemberProfile(solvedAcId);
+        return ResponseEntity.ok(response);
     }
 }

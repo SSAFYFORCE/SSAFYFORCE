@@ -4,6 +4,7 @@ import force.ssafy.domain.member.dto.request.MemberUpdateRequest;
 import force.ssafy.domain.member.dto.request.PasswordChangeDto;
 import force.ssafy.domain.member.dto.request.PasswordResetDto;
 import force.ssafy.domain.member.dto.response.MemberDto;
+import force.ssafy.domain.member.dto.response.MemberProfileResponse;
 import force.ssafy.domain.member.dto.response.NicknameVerificationDto;
 import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.exception.InvalidPasswordException;
@@ -11,6 +12,7 @@ import force.ssafy.domain.member.exception.MemberNotFoundException;
 import force.ssafy.domain.member.repository.MemberRepository;
 import force.ssafy.domain.solvedac.entity.SolvedAcUserInfo;
 import force.ssafy.domain.solvedac.service.SolvedAcApiService;  // 추가
+import force.ssafy.global.error.exception.EntityNotFoundException;
 import force.ssafy.global.security.userdetails.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -136,5 +140,16 @@ public class MemberService implements UserDetailsService {
     @Transactional
     public void deleteMember(Long memberId) {
         memberRepository.deleteById(memberId);
+    }
+
+    /**
+     * 회원 프로필 조회
+     */
+    public MemberProfileResponse getMemberProfile(String solvedAcId) {
+
+        Member member = memberRepository.findBySolvedAcId(solvedAcId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 멤버가 없습니다. solvedAcId =" + solvedAcId));
+
+        return MemberProfileResponse.to(member);
     }
 }
