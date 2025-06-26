@@ -7,204 +7,97 @@
         <span>프로필을 불러오는 중...</span>
       </div>
 
-      <div v-else-if="profile" class="profile-layout">
+      <div v-else-if="profile && userTeams" class="profile-layout">
         <!-- 왼쪽: 프로필 카드 -->
         <div class="profile-card">
           <div class="profile-avatar">
-            <img :src="profile.profileImage" :alt="profile.username" />
+            <img :src="profile.profileImage" :alt="profile.name" />
           </div>
 
           <div class="profile-main-info">
-            <h2 class="username">{{ profile.username }}</h2>
-            <div class="tier-info">
-              <span class="tier-badge" :style="getTierColor(profile.tier)">
-                {{ profile.tier }}
-              </span>
-              <span class="rating">{{ profile.rating }}</span>
-            </div>
-            <div class="rank-info">
+            <h2 class="name">{{ profile.name }}</h2>
+            <p class="solved-ac-id">@{{ profile.solvedAcId }}</p>
+
+            <!-- <div class="rank-info">
               <div class="rank-item">
                 <span class="rank-label">Rank</span>
-                <span class="rank-value">#{{ profile.rank || 1234 }}</span>
+                <span class="rank-value">#{{ stats.rank }}</span>
               </div>
               <div class="rank-item">
                 <span class="rank-label">상위</span>
-                <span class="rank-value">{{ profile.topPercent || '0.7' }}%</span>
+                <span class="rank-value">{{ stats.topPercent }}%</span>
               </div>
+            </div> -->
+
+            <div class="sync-info">
+              <span class="sync-label">마지막 동기화</span>
+              <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
             </div>
           </div>
 
-          <div class="profile-actions">
-            <button class="profile-edit-btn" @click="toggleEditMode">프로필 편집하기</button>
+          <!-- 소속 팀 정보 -->
+          <div class="teams-section">
+            <h3 class="teams-title">소속 팀</h3>
+            <div class="teams-list">
+              <div
+                v-for="team in userTeams.teams"
+                :key="team.id"
+                class="team-item"
+                @click="goToTeam(team.id)"
+              >
+                <div class="team-avatar">
+                  <img :src="team.profileImage" :alt="team.name" />
+                </div>
+                <div class="team-info">
+                  <span class="team-name">{{ team.name }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 중앙/오른쪽: 통계 및 차트 -->
+        <!-- 중앙/오른쪽: 통계 -->
         <div class="profile-stats">
           <!-- 문제 해결 현황 -->
           <div class="stats-section">
             <h3>문제 해결 현황</h3>
             <div class="solve-stats">
               <div class="solve-count">
-                <span class="count-number">{{ profile?.solvedProblems || 0 }}</span>
+                <span class="count-number">{{ stats.solvedProblems }}</span>
                 <span class="count-label">맞혔습니다!!</span>
               </div>
               <div class="solve-rate">
-                <span class="rate-number">{{ profile?.correctRate || 0 }}%</span>
+                <span class="rate-number">{{ stats.correctRate }}%</span>
                 <span class="rate-label">정답률</span>
               </div>
             </div>
           </div>
 
-          <!-- 티어별 분포 -->
-          <div class="tier-distribution-section">
-            <h3>티어별 분포</h3>
-            <div class="tier-charts">
-              <div class="tier-donut-chart">
-                <!-- 도넛 차트 시뮬레이션 -->
-                <div class="donut-placeholder">
-                  <svg width="120" height="120" viewBox="0 0 120 120">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="40"
-                      fill="none"
-                      stroke="#ff0062"
-                      stroke-width="20"
-                      stroke-dasharray="31.4 188.4"
-                      transform="rotate(-90 60 60)"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="40"
-                      fill="none"
-                      stroke="#00b4fc"
-                      stroke-width="20"
-                      stroke-dasharray="25.1 194.7"
-                      transform="rotate(45 60 60)"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="40"
-                      fill="none"
-                      stroke="#27e2a4"
-                      stroke-width="20"
-                      stroke-dasharray="18.8 200.8"
-                      transform="rotate(135 60 60)"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="40"
-                      fill="none"
-                      stroke="#ec9a00"
-                      stroke-width="20"
-                      stroke-dasharray="31.4 188.4"
-                      transform="rotate(225 60 60)"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="40"
-                      fill="none"
-                      stroke="#435f7a"
-                      stroke-width="20"
-                      stroke-dasharray="62.8 157.0"
-                      transform="rotate(315 60 60)"
-                    />
-                  </svg>
-                </div>
-                <div class="tier-legend">
-                  <div class="legend-item">
-                    <span class="legend-color" style="background-color: #ff0062"></span>
-                    <span class="legend-text">Ruby</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background-color: #00b4fc"></span>
-                    <span class="legend-text">Diamond</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background-color: #27e2a4"></span>
-                    <span class="legend-text">Platinum</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background-color: #ec9a00"></span>
-                    <span class="legend-text">Gold</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background-color: #435f7a"></span>
-                    <span class="legend-text">Silver</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 난이도별 막대 그래프 -->
-              <div class="difficulty-bar-chart">
-                <div class="bar-item">
-                  <span class="bar-label">구현</span>
-                  <div class="bar-container">
-                    <div
-                      class="bar-fill"
-                      style="height: 60%; background-color: var(--samsung-blue)"
-                    ></div>
-                  </div>
-                </div>
-                <div class="bar-item">
-                  <span class="bar-label">다이나믹 프로그래밍</span>
-                  <div class="bar-container">
-                    <div
-                      class="bar-fill"
-                      style="height: 40%; background-color: var(--samsung-blue)"
-                    ></div>
-                  </div>
-                </div>
-                <div class="bar-item">
-                  <span class="bar-label">그래프 탐색</span>
-                  <div class="bar-container">
-                    <div
-                      class="bar-fill"
-                      style="height: 50%; background-color: var(--samsung-blue)"
-                    ></div>
-                  </div>
-                </div>
-                <div class="bar-item">
-                  <span class="bar-label">그리디 알고리즘</span>
-                  <div class="bar-container">
-                    <div
-                      class="bar-fill"
-                      style="height: 80%; background-color: var(--samsung-blue)"
-                    ></div>
-                  </div>
-                </div>
-                <div class="bar-item">
-                  <span class="bar-label">백트래킹</span>
-                  <div class="bar-container">
-                    <div
-                      class="bar-fill"
-                      style="height: 30%; background-color: var(--samsung-blue)"
-                    ></div>
-                  </div>
-                </div>
+          <!-- 현재 연속 해결 -->
+          <div class="streak-section">
+            <h3>현재 연속 해결</h3>
+            <div class="streak-info">
+              <div class="streak-count">
+                <span class="streak-number">{{ stats.streak }}</span>
+                <span class="streak-label">일 연속</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 하단: 최근 해결한 문제 20개 -->
+        <!-- 하단: 최근 해결한 문제 -->
         <div class="recent-problems-section">
           <h3>최근 해결한 문제</h3>
           <div class="problems-list">
             <div
-              v-for="(problem, index) in profile?.recentSolved || []"
+              v-for="(problem, index) in stats.recentSolved"
               :key="`${problem.problemNumber}-${index}`"
               class="problem-item"
             >
               <div class="problem-tier-badge">
                 <span
                   class="tier-indicator"
-                  :style="{ backgroundColor: getTierColor(problem.tier).color }"
+                  :style="{ backgroundColor: getTierColor(problem.tier).backgroundColor }"
                 >
                   {{ getTierShortName(problem.tier) }}
                 </span>
@@ -216,7 +109,7 @@
                   <span class="problem-title">{{ problem.title }}</span>
                 </div>
                 <div class="problem-meta">
-                  <span class="solve-language">java 8</span>
+                  <span class="solve-language">{{ problem.language }}</span>
                   <span class="solve-time">{{ getRelativeTime(problem.solvedAt) }}</span>
                 </div>
               </div>
@@ -239,94 +132,38 @@
           </div>
         </div>
       </div>
-
-      <!-- 편집 모달 -->
-      <div v-if="editMode" class="edit-modal-overlay" @click="toggleEditMode">
-        <div class="edit-modal" @click.stop>
-          <div class="modal-header">
-            <h2>프로필 편집</h2>
-            <button class="modal-close" @click="toggleEditMode">
-              <font-awesome-icon :icon="['fas', 'times']" />
-            </button>
-          </div>
-
-          <form @submit.prevent="saveProfile" class="edit-form">
-            <div class="form-group">
-              <label>자기소개</label>
-              <textarea
-                v-model="editData.bio"
-                placeholder="자신을 소개해주세요..."
-                class="form-textarea"
-                rows="3"
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <label>GitHub</label>
-              <input
-                v-model="editData.github"
-                type="url"
-                placeholder="https://github.com/username"
-                class="form-input"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>블로그</label>
-              <input
-                v-model="editData.blog"
-                type="url"
-                placeholder="https://blog.example.com"
-                class="form-input"
-              />
-            </div>
-
-            <div class="modal-actions">
-              <button type="button" @click="toggleEditMode" class="btn btn-secondary">취소</button>
-              <button type="submit" :disabled="saving" class="btn btn-primary">
-                <template v-if="saving">
-                  <font-awesome-icon :icon="['fas', 'spinner']" spin />
-                  저장 중...
-                </template>
-                <template v-else> 저장 </template>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { fetchUserProfile } from '@/utils/datatransferutil'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { mockProfileResponse, mockTeamsResponse, mockStatsResponse } from '@/mockdata/profile'
+// import { memberApi } from '@/api/memberApi' // API 연동 시 주석 해제
+
+const route = useRoute()
+const router = useRouter()
 
 // 반응성 데이터
 const profile = ref(null)
+const userTeams = ref(null)
+const stats = ref(null)
 const loading = ref(true)
-const editMode = ref(false)
-const saving = ref(false)
-
-const editData = reactive({
-  bio: '',
-  github: '',
-  blog: '',
-})
 
 // 메서드
 const getTierColor = (tier) => {
   const tierName = tier.split(' ')[0].toLowerCase()
   const colors = {
-    ruby: '#ff0062',
-    diamond: '#00b4fc',
-    platinum: '#27e2a4',
-    gold: '#ec9a00',
-    silver: '#435f7a',
-    bronze: '#ad5600',
-    unrated: '#2d2d2d',
+    ruby: { backgroundColor: '#ff0062', color: '#ffffff' },
+    diamond: { backgroundColor: '#00b4fc', color: '#ffffff' },
+    platinum: { backgroundColor: '#27e2a4', color: '#ffffff' },
+    gold: { backgroundColor: '#ec9a00', color: '#ffffff' },
+    silver: { backgroundColor: '#435f7a', color: '#ffffff' },
+    bronze: { backgroundColor: '#ad5600', color: '#ffffff' },
+    unrated: { backgroundColor: '#2d2d2d', color: '#ffffff' },
   }
-  return { color: colors[tierName] || '#2d2d2d' }
+  return colors[tierName] || colors.unrated
 }
 
 const getTierShortName = (tier) => {
@@ -369,7 +206,11 @@ const getRelativeTime = (dateString) => {
   const date = new Date(dateString)
   const now = new Date()
   const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
+  const diffHours = Math.floor((now - date) / (1000 * 60 * 60))
+  const diffMinutes = Math.floor((now - date) / (1000 * 60))
 
+  if (diffMinutes < 60) return `${diffMinutes}분 전`
+  if (diffHours < 24) return `${diffHours}시간 전`
   if (diffDays === 0) return '오늘'
   if (diffDays === 1) return '1일 전'
   if (diffDays < 7) return `${diffDays}일 전`
@@ -378,57 +219,102 @@ const getRelativeTime = (dateString) => {
   return `${Math.floor(diffDays / 365)}년 전`
 }
 
+const goToTeam = (teamId) => {
+  router.push(`/team/${teamId}`)
+}
+
 const loadProfile = async () => {
   loading.value = true
   try {
-    const data = await fetchUserProfile()
-    profile.value = data
+    const solvedAcId = route.params.solvedAcId || 'shiftpsh' // URL 파라미터 또는 기본값
+    console.log('solvedAcId : ', solvedAcId)
+    // API 호출 (API 연동 시 주석 해제)
+    /*
+    const [profileResponse, teamsResponse, statsResponse] = await Promise.all([
+      memberApi.getMemberProfile(solvedAcId),
+      memberApi.getMemberTeams(solvedAcId),
+      memberApi.getMemberStats(solvedAcId)
+    ])
 
-    // 편집 데이터 초기화
-    if (data) {
-      editData.bio = data.bio || ''
-      editData.github = data.github || ''
-      editData.blog = data.blog || ''
-    }
+    // API 응답 데이터 파싱
+    profile.value = parseProfileData(profileResponse.data)
+    userTeams.value = parseTeamsData(teamsResponse.data)
+    stats.value = parseStatsData(statsResponse.data)
+    */
+
+    // Mock 데이터 사용 (API 연동 전까지 임시)
+    await simulateApiCall()
+
+    // Mock 데이터를 API 응답인 것처럼 파싱 (실제와 동일한 로직)
+    profile.value = parseProfileData(mockProfileResponse)
+    userTeams.value = parseTeamsData(mockTeamsResponse)
+    stats.value = parseStatsData(mockStatsResponse)
   } catch (error) {
     console.error('프로필을 불러오는 중 오류 발생:', error)
+
+    // API 오류 시 Mock 데이터로 fallback (API 연동 시 주석 해제)
+    /*
+    if (process.env.NODE_ENV === 'development') {
+      profile.value = parseProfileData(mockProfileResponse)
+      userTeams.value = parseTeamsData(mockTeamsResponse)
+      stats.value = parseStatsData(mockStatsResponse)
+    }
+    */
   } finally {
     loading.value = false
   }
 }
 
-const toggleEditMode = () => {
-  editMode.value = !editMode.value
+// API 호출 시뮬레이션 (로딩 효과를 위한 지연)
+const simulateApiCall = () => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 500)
+  })
+}
 
-  if (editMode.value && profile.value) {
-    // 편집 모드로 진입할 때 현재 데이터로 초기화
-    editData.bio = profile.value.bio || ''
-    editData.github = profile.value.github || ''
-    editData.blog = profile.value.blog || ''
+// 데이터 파싱 함수들 (Mock 데이터와 API 응답 모두 동일하게 처리)
+// 프로필 데이터 파싱 함수
+const parseProfileData = (data) => {
+  return {
+    profileImage: data.profileImage || 'https://via.placeholder.com/80x80',
+    name: data.name || '이름 없음',
+    solvedAcId: data.solvedAcId || '',
+    lastProblemSyncTime: data.lastProblemSyncTime || new Date().toISOString(),
   }
 }
 
-const saveProfile = async () => {
-  saving.value = true
+// 팀 데이터 파싱 함수
+const parseTeamsData = (data) => {
+  return {
+    teams: (data.teams || []).map((team) => ({
+      id: team.id,
+      name: team.name || '팀 이름 없음',
+      profileImage:
+        team.profileImage ||
+        `https://via.placeholder.com/40x40/1428A0/ffffff?text=${team.name?.charAt(0) || 'T'}`,
+    })),
+  }
+}
 
-  try {
-    // 실제로는 API 호출하여 프로필 업데이트
-    // 여기서는 로컬 데이터만 업데이트
-    if (profile.value) {
-      profile.value.bio = editData.bio
-      profile.value.github = editData.github
-      profile.value.blog = editData.blog
-    }
-
-    editMode.value = false
-
-    // 성공 메시지 (실제로는 토스트 등으로 표시)
-    alert('프로필이 성공적으로 업데이트되었습니다!')
-  } catch (error) {
-    console.error('프로필 저장 중 오류 발생:', error)
-    alert('프로필 저장에 실패했습니다.')
-  } finally {
-    saving.value = false
+// 통계 데이터 파싱 함수
+const parseStatsData = (data) => {
+  return {
+    tier: data.tier || 'Unrated',
+    rating: data.rating || 0,
+    rank: data.rank || 0,
+    topPercent: data.topPercent || 0,
+    solvedProblems: data.solvedProblems || 0,
+    correctRate: data.correctRate || 0,
+    totalSubmissions: data.totalSubmissions || 0,
+    streak: data.streak || 0,
+    recentSolved: (data.recentSolved || []).map((problem) => ({
+      problemNumber: problem.problemNumber || 0,
+      title: problem.title || '제목 없음',
+      tier: problem.tier || 'Unrated',
+      solvedAt: problem.solvedAt || new Date().toISOString(),
+      experience: problem.experience || 0,
+      language: problem.language || 'Unknown',
+    })),
   }
 }
 
@@ -506,11 +392,17 @@ onMounted(() => {
   margin-bottom: 2rem;
 }
 
-.username {
+.name {
   font-size: 1.8rem;
   font-weight: 700;
   color: #333;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.solved-ac-id {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1rem;
 }
 
 .tier-info {
@@ -526,7 +418,7 @@ onMounted(() => {
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 6px;
-  background: rgba(128, 128, 128, 0.1);
+  color: white;
 }
 
 .rating {
@@ -539,6 +431,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-around;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .rank-item {
@@ -559,20 +452,83 @@ onMounted(() => {
   color: #333;
 }
 
-.profile-edit-btn {
-  width: 100%;
+.sync-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
   padding: 0.75rem;
-  background: var(--samsung-blue);
-  color: white;
-  border: none;
+  background: #f8f9fa;
   border-radius: 8px;
+}
+
+.sync-label {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.sync-time {
+  font-size: 0.9rem;
   font-weight: 500;
+  color: #333;
+}
+
+/* 팀 섹션 */
+.teams-section {
+  border-top: 1px solid #e9ecef;
+  padding-top: 1.5rem;
+}
+
+.teams-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.team-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.profile-edit-btn:hover {
-  background: var(--samsung-blue-dark);
+.team-item:hover {
+  background: #f8f9fa;
+}
+
+.team-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.team-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-info {
+  flex: 1;
+}
+
+.team-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
 }
 
 /* 통계 섹션 */
@@ -584,7 +540,7 @@ onMounted(() => {
 }
 
 .stats-section,
-.tier-distribution-section {
+.streak-section {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -592,7 +548,7 @@ onMounted(() => {
 }
 
 .stats-section h3,
-.tier-distribution-section h3 {
+.streak-section h3 {
   margin-bottom: 1.5rem;
   color: #333;
   font-size: 1.1rem;
@@ -627,86 +583,27 @@ onMounted(() => {
   margin-top: 0.25rem;
 }
 
-/* 티어 차트 섹션 */
-.tier-charts {
-  display: flex;
-  gap: 3rem;
-  justify-content: space-around;
-  align-items: center;
-}
-
-.tier-donut-chart {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.donut-placeholder {
-  position: relative;
-}
-
-.tier-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-}
-
-.legend-text {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-.difficulty-bar-chart {
-  display: flex;
-  gap: 1rem;
-  align-items: end;
-  height: 120px;
-}
-
-.bar-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.bar-container {
-  width: 40px;
-  height: 80px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  display: flex;
-  align-items: end;
-  overflow: hidden;
-}
-
-.bar-fill {
-  width: 100%;
-  border-radius: 4px 4px 0 0;
-  transition: height 0.3s ease;
-}
-
-.bar-label {
-  font-size: 0.7rem;
-  color: #666;
+.streak-info {
   text-align: center;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  max-width: 40px;
+}
+
+.streak-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.streak-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #27e2a4;
+  line-height: 1;
+}
+
+.streak-label {
+  font-size: 1rem;
+  color: #666;
+  margin-top: 0.5rem;
 }
 
 /* 최근 해결한 문제 섹션 */
@@ -739,7 +636,6 @@ onMounted(() => {
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 4px solid transparent;
   transition: background-color 0.2s;
 }
 
@@ -835,131 +731,6 @@ onMounted(() => {
   background: var(--samsung-blue-dark);
 }
 
-/* 편집 모달 */
-.edit-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.edit-modal {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: #333;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #666;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: color 0.2s;
-}
-
-.modal-close:hover {
-  color: #333;
-}
-
-.edit-form {
-  padding: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-weight: 500;
-}
-
-.form-input,
-.form-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  font-family: inherit;
-  resize: vertical;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--samsung-blue);
-  box-shadow: 0 0 0 3px var(--samsung-blue-alpha);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background-color: var(--samsung-blue);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--samsung-blue-dark);
-}
-
-.btn-secondary {
-  background-color: #f8f9fa;
-  color: #333;
-  border: 1px solid #dee2e6;
-}
-
-.btn-secondary:hover {
-  background-color: #e9ecef;
-}
-
 /* 반응형 디자인 */
 @media (max-width: 1024px) {
   .profile-layout {
@@ -968,11 +739,6 @@ onMounted(() => {
       'profile-card'
       'profile-stats'
       'recent-problems';
-  }
-
-  .tier-charts {
-    flex-direction: column;
-    gap: 2rem;
   }
 
   .solve-stats {
@@ -1001,14 +767,14 @@ onMounted(() => {
     flex-direction: row;
     justify-content: space-between;
   }
-}
 
-@media (max-width: 480px) {
   .solve-stats {
     flex-direction: column;
     gap: 1rem;
   }
+}
 
+@media (max-width: 480px) {
   .problem-header {
     flex-direction: column;
     align-items: stretch;
