@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
@@ -24,9 +26,23 @@ public class TeamMember {
     private Team team;
 
     @Column(nullable = false)
-    private String joinedAt;
+    private LocalDateTime joinedAt;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)    // 멤버 기본 역할은 팀원
     private MemberRole role = MemberRole.MEMBER;
+
+    public static TeamMember create(Member member, Team team) {
+        TeamMember tm = TeamMember.builder()
+                .member(member)
+                .team(team)
+                .joinedAt(LocalDateTime.now())
+                .role(MemberRole.MEMBER)
+                .build();
+
+        // 양방향 관계 동기화
+        member.getTeamMembers().add(tm);
+        team.getTeamMembers().add(tm);
+        return tm;
+    }
 }
