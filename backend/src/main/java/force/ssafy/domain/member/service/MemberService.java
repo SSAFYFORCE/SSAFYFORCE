@@ -149,6 +149,7 @@ public class MemberService implements UserDetailsService {
     /**
      * 회원 프로필 조회
      */
+    @Transactional(readOnly = true)
     public MemberProfileResponse getMemberProfile(String solvedAcId) {
 
         Member member = memberRepository.findBySolvedAcId(solvedAcId)
@@ -160,11 +161,13 @@ public class MemberService implements UserDetailsService {
     /**
      * 가입한 팀 목록 조회
      */
+    @Transactional(readOnly = true)
     public MemberTeamsResponse getMemberTeams(String solvedAcId) {
-        Member member = memberRepository.findBySolvedAcId(solvedAcId)
+        Member member = memberRepository.findWithTeamsBySolvedAcId(solvedAcId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 멤버가 없습니다. solvedAcId =" + solvedAcId));
 
         List<TeamSimpleResponse> teams = member.getTeamMembers().stream()
+                .filter(tm -> !tm.getTeam().isDeleted())
                 .map(TeamSimpleResponse::from)
                 .collect(Collectors.toList());
 
