@@ -4,14 +4,15 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.entity.MemberRole;
 import force.ssafy.domain.team.entity.Team;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TeamMember {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
