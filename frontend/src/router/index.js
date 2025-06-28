@@ -1,10 +1,10 @@
 // src/router/index.js
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import { checkAuthStatus } from '../utils/datatransferutil'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(), // Hash 기반 라우팅으로 변경
   routes: [
     {
       path: '/',

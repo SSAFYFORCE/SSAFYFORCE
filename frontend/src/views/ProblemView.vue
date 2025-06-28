@@ -7,83 +7,16 @@
         <p>다양한 알고리즘 문제를 풀어보세요</p>
       </div>
 
-      <!-- 필터 섹션 -->
-      <div class="filters-section">
-        <div class="search-container">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="문제 제목이나 번호로 검색..."
-            class="search-input"
-            @keyup.enter="applyFilters"
-          />
-          <button class="search-btn" @click="applyFilters">
-            <font-awesome-icon :icon="['fas', 'search']" />
-            검색
-          </button>
-        </div>
-
-        <div class="filter-controls">
-          <select v-model="selectedTier" class="filter-select">
-            <option value="">모든 티어</option>
-            <option value="Bronze V">Bronze V</option>
-            <option value="Bronze IV">Bronze IV</option>
-            <option value="Bronze III">Bronze III</option>
-            <option value="Bronze II">Bronze II</option>
-            <option value="Bronze I">Bronze I</option>
-            <option value="Silver V">Silver V</option>
-            <option value="Silver IV">Silver IV</option>
-            <option value="Silver III">Silver III</option>
-            <option value="Silver II">Silver II</option>
-            <option value="Silver I">Silver I</option>
-            <option value="Gold V">Gold V</option>
-            <option value="Gold IV">Gold IV</option>
-            <option value="Gold III">Gold III</option>
-            <option value="Gold II">Gold II</option>
-            <option value="Gold I">Gold I</option>
-            <option value="Platinum V">Platinum V</option>
-            <option value="Platinum IV">Platinum IV</option>
-            <option value="Platinum III">Platinum III</option>
-            <option value="Platinum II">Platinum II</option>
-            <option value="Platinum I">Platinum I</option>
-            <option value="Diamond V">Diamond V</option>
-            <option value="Diamond IV">Diamond IV</option>
-            <option value="Diamond III">Diamond III</option>
-            <option value="Diamond II">Diamond II</option>
-            <option value="Diamond I">Diamond I</option>
-            <option value="Ruby V">Ruby V</option>
-            <option value="Ruby IV">Ruby IV</option>
-            <option value="Ruby III">Ruby III</option>
-            <option value="Ruby II">Ruby II</option>
-            <option value="Ruby I">Ruby I</option>
-          </select>
-
-          <select v-model="selectedSolvedStatus" class="filter-select">
-            <option value="">모든 문제</option>
-            <option :value="true">해결한 문제</option>
-            <option :value="false">해결하지 않은 문제</option>
-          </select>
-
-          <select v-model="selectedAlgorithm" class="filter-select">
-            <option value="">모든 알고리즘</option>
-            <option value="구현">구현</option>
-            <option value="수학">수학</option>
-            <option value="다이나믹 프로그래밍">다이나믹 프로그래밍</option>
-            <option value="그래프 이론">그래프 이론</option>
-            <option value="그래프 탐색">그래프 탐색</option>
-            <option value="너비 우선 탐색">너비 우선 탐색</option>
-            <option value="깊이 우선 탐색">깊이 우선 탐색</option>
-            <option value="트리">트리</option>
-            <option value="재귀">재귀</option>
-          </select>
-        </div>
-      </div>
-
       <!-- 문제 목록 -->
       <div class="problems-section">
         <div v-if="loading" class="loading">
           <font-awesome-icon :icon="['fas', 'spinner']" spin />
           <span>문제를 불러오는 중...</span>
+        </div>
+
+        <div v-else-if="error" class="error-message">
+          <p>{{ error }}</p>
+          <button class="btn btn-primary" @click="loadProblems">다시 시도</button>
         </div>
 
         <div v-else-if="problems.length === 0" class="no-problems">
@@ -113,8 +46,12 @@
             </div>
 
             <div class="problem-algorithms">
-              <span v-for="algorithm in problem.algorithms" :key="algorithm" class="algorithm-tag">
-                {{ algorithm.name }}
+              <span
+                v-for="algorithm in problem.algorithms || []"
+                :key="algorithm.name || algorithm"
+                class="algorithm-tag"
+              >
+                {{ algorithm.name || algorithm }}
               </span>
             </div>
 
@@ -125,7 +62,7 @@
         </div>
 
         <!-- 페이지네이션 -->
-        <div class="pagination">
+        <div v-if="totalPages > 1" class="pagination">
           <button class="pagination-btn" :disabled="currentPage === 0" @click="changePage(0)">
             &lt;&lt;
           </button>
@@ -187,7 +124,9 @@
             <div class="stat-label">미해결 문제</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">{{ Math.round((solvedCount / totalProblems) * 100) }}%</div>
+            <div class="stat-number">
+              {{ totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0 }}%
+            </div>
             <div class="stat-label">해결률</div>
           </div>
         </div>
@@ -198,23 +137,25 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { fetchProblems } from '@/utils/datatransferutil'
+import { problemApi } from '@/api/problemApi'
 
 // 반응성 데이터
 const problems = ref([])
 const loading = ref(true)
+const error = ref('')
 const searchQuery = ref('')
 const selectedTier = ref('')
 const selectedSolvedStatus = ref('')
 const selectedAlgorithm = ref('')
 const currentPage = ref(0)
 const totalPages = ref(0)
+const totalElements = ref(0)
 const pageSize = 15
 
 // 계산된 속성
 const solvedCount = computed(() => problems.value.filter((p) => p.isSolved).length)
 const unsolvedCount = computed(() => problems.value.filter((p) => !p.isSolved).length)
-const totalProblems = computed(() => problems.value.length)
+const totalProblems = computed(() => totalElements.value)
 
 // 페이지네이션 표시 페이지 계산
 const displayPages = computed(() => {
@@ -236,6 +177,8 @@ const displayPages = computed(() => {
 
 // 티어별 색상을 반환하는 함수
 const getTierColor = (tier) => {
+  if (!tier) return { color: '#2d2d2d' }
+
   const tierName = tier.split(' ')[0][0]
   const colors = {
     R: '#ff0062',
@@ -249,24 +192,55 @@ const getTierColor = (tier) => {
   return { color: colors[tierName] || '#2d2d2d' }
 }
 
+// 쿼리 파라미터 생성 함수
+const buildQueryParams = () => {
+  const params = new URLSearchParams()
+
+  // 페이지네이션 파라미터
+  params.append('page', currentPage.value.toString())
+  params.append('size', pageSize.toString())
+
+  // 필터 파라미터
+  if (selectedTier.value) params.append('tier', selectedTier.value)
+  if (selectedAlgorithm.value) params.append('algorithm', selectedAlgorithm.value)
+  if (searchQuery.value) params.append('search', searchQuery.value)
+  if (selectedSolvedStatus.value !== '')
+    params.append('solved', selectedSolvedStatus.value.toString())
+
+  return params.toString()
+}
+
 // 문제 목록 로드
 const loadProblems = async () => {
   loading.value = true
+  error.value = ''
+
   try {
-    const filters = {
-      searchQuery: searchQuery.value,
-      tier: selectedTier.value,
-      solvedStatus: selectedSolvedStatus.value,
-      algorithm: selectedAlgorithm.value,
-      page: currentPage.value,
-      size: pageSize,
+    const queryParams = buildQueryParams()
+    const response = await problemApi.getAllProblems(queryParams)
+
+    // 응답 데이터 구조에 따라 조정이 필요할 수 있습니다
+    const data = response.data
+
+    if (data) {
+      problems.value = data.content || data.data || data
+      totalPages.value =
+        data.totalPages || Math.ceil((data.totalElements || data.total || 0) / pageSize)
+      totalElements.value =
+        data.totalElements ||
+        data.total ||
+        (Array.isArray(problems.value) ? problems.value.length : 0)
+    } else {
+      problems.value = []
+      totalPages.value = 0
+      totalElements.value = 0
     }
-    const data = await fetchProblems(filters)
-    problems.value = data.content
-    totalPages.value = data.totalPages
-  } catch (error) {
-    console.error('문제를 불러오는 중 오류 발생:', error)
+  } catch (err) {
+    console.error('문제를 불러오는 중 오류 발생:', err)
+    error.value = err.response?.data?.message || err.message || '문제를 불러오는데 실패했습니다.'
     problems.value = []
+    totalPages.value = 0
+    totalElements.value = 0
   } finally {
     loading.value = false
   }
@@ -275,12 +249,6 @@ const loadProblems = async () => {
 // 페이지 변경
 const changePage = (page) => {
   currentPage.value = page
-  loadProblems()
-}
-
-// 필터 적용
-const applyFilters = () => {
-  currentPage.value = 0
   loadProblems()
 }
 
@@ -399,6 +367,21 @@ onMounted(() => {
   padding: 3rem;
   color: #666;
   gap: 1rem;
+}
+
+.error-message {
+  text-align: center;
+  padding: 3rem;
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.error-message p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
 }
 
 .no-problems {
