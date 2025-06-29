@@ -118,12 +118,7 @@ public class TeamService {
         // }
 
         // 5) TeamMember 엔티티 생성 및 저장
-        TeamMember tm = TeamMember.builder()
-                .team(team)
-                .member(member)
-                .joinedAt(LocalDateTime.now().toString())
-                .role(MemberRole.MEMBER)
-                .build();
+        TeamMember tm = TeamMember.create(member, team);
 
         teamMemberRepository.save(tm);
     }
