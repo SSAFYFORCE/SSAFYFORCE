@@ -6,7 +6,6 @@ import force.ssafy.domain.solvedProblem.entity.SolvedProblem;
 import force.ssafy.domain.solvedProblem.repository.SolvedProblemRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
