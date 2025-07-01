@@ -1,5 +1,6 @@
 package force.ssafy.domain.solvedProblem.controller;
 
+import force.ssafy.domain.solvedProblem.controller.dto.response.InfiniteScrollResponse;
 import force.ssafy.domain.solvedProblem.controller.dto.response.SolvedProblemResponse;
 import force.ssafy.domain.solvedProblem.controller.dto.response.SyncResultResponse;
 import force.ssafy.domain.solvedProblem.service.SolvedProblemService;
@@ -36,6 +37,15 @@ public class SolvedProblemController {
             Pageable pageable) {
         DateUtils.validateDataRange(startDate, endDate);
         return ResponseEntity.ok(solvedProblemService.getSolvedProblems(memberId, startDate, endDate, pageable));
+    }
+
+    @GetMapping("/recent/{solvedAcId}")
+    public ResponseEntity<InfiniteScrollResponse<SolvedProblemResponse>> getRecentSolvedProblemsWithScroll(
+            @PathVariable("solvedAcId") String solvedAcId,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime cursor){
+        log.info("무한스크롤 조회 요청 - solvedAcId: {}, cursor: {}", solvedAcId, cursor);
+        InfiniteScrollResponse<SolvedProblemResponse> response = solvedProblemService.getRecentSolvedProblemsWithCursor(solvedAcId, cursor);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/sync/{solvedAcId}")
