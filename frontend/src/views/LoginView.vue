@@ -118,10 +118,12 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { login } from '@/utils/datatransferutil'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
 
 // 반응성 데이터
 const credentials = reactive({
@@ -164,22 +166,25 @@ const handleLogin = async () => {
   errorMessage.value = ''
 
   try {
-    const user = await login(credentials)
+    console.log('로그인 시도:', {
+      solvedAcId: credentials.username,
+      password: credentials.password,
+    })
 
-    // 로그인 성공 시 storage 이벤트를 수동으로 발생시켜 다른 컴포넌트에서 감지할 수 있도록 함
-    window.dispatchEvent(
-      new StorageEvent('storage', {
-        key: 'user',
-        newValue: JSON.stringify(user),
-        url: window.location.href,
-      }),
-    )
+    const response = await authStore.login({
+      solvedAcId: credentials.username,
+      password: credentials.password,
+    })
 
-    // 로그인 성공 시 홈으로 리다이렉트
-    const redirectPath = router.currentRoute.value.query.redirect || '/'
-    router.push(redirectPath)
+    if (response) {
+      // 로그인 성공 시 리다이렉트
+      const redirectPath = route.query.redirect || '/'
+      router.push(redirectPath)
+    }
   } catch (error) {
-    errorMessage.value = error.message
+    console.error('로그인 실패:', error)
+    errorMessage.value =
+      error.response?.data?.message || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'
   } finally {
     loading.value = false
   }
