@@ -30,7 +30,13 @@
             </div> -->
 
             <div class="sync-info">
-              <span class="sync-label">마지막 동기화</span>
+              <div class="sync-header">
+                <span class="sync-label">마지막 동기화</span>
+                <button @click="syncProfile" class="sync-button" :disabled="isSyncing">
+                  <font-awesome-icon :icon="['fas', 'sync']" :class="{ 'fa-spin': isSyncing }" />
+                  {{ isSyncing ? '동기화 중...' : '동기화' }}
+                </button>
+              </div>
               <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
             </div>
           </div>
@@ -139,17 +145,21 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mockProfileResponse, mockTeamsResponse, mockStatsResponse } from '@/mockdata/profile'
-// import { memberApi } from '@/api/memberApi' // API 연동 시 주석 해제
+import { useAuthStore } from '@/stores/auth'
+import { memberApi } from '@/api/memberApi'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 반응성 데이터
 const profile = ref(null)
 const userTeams = ref(null)
 const stats = ref(null)
 const loading = ref(true)
+
+// 동기화 상태
+const isSyncing = ref(false)
 
 // 메서드
 const getTierColor = (tier) => {
@@ -226,54 +236,43 @@ const goToTeam = (teamId) => {
 const loadProfile = async () => {
   loading.value = true
   try {
-    const solvedAcId = route.params.solvedAcId || 'shiftpsh' // URL 파라미터 또는 기본값
-    console.log('solvedAcId : ', solvedAcId)
-    // API 호출 (API 연동 시 주석 해제)
-    /*
-    const [profileResponse, teamsResponse, statsResponse] = await Promise.all([
+    // 현재 로그인한 사용자의 정보 사용
+    const solvedAcId = authStore.user?.solvedAcId
+    console.log('solvedAcId:', solvedAcId)
+
+    if (!solvedAcId) {
+      throw new Error('사용자 정보를 찾을 수 없습니다.')
+    }
+
+    // API 호출
+    const [profileResponse, teamsResponse] = await Promise.all([
       memberApi.getMemberProfile(solvedAcId),
       memberApi.getMemberTeams(solvedAcId),
-      memberApi.getMemberStats(solvedAcId)
     ])
+
+    console.log('프로필 응답:', profileResponse)
+    console.log('팀 응답:', teamsResponse)
 
     // API 응답 데이터 파싱
     profile.value = parseProfileData(profileResponse.data)
     userTeams.value = parseTeamsData(teamsResponse.data)
-    stats.value = parseStatsData(statsResponse.data)
-    */
 
-    // Mock 데이터 사용 (API 연동 전까지 임시)
-    await simulateApiCall()
-
-    // Mock 데이터를 API 응답인 것처럼 파싱 (실제와 동일한 로직)
-    profile.value = parseProfileData(mockProfileResponse)
-    userTeams.value = parseTeamsData(mockTeamsResponse)
-    stats.value = parseStatsData(mockStatsResponse)
+    // 임시로 통계 데이터는 더미 데이터 사용
+    stats.value = {
+      solvedProblems: 0,
+      correctRate: 0,
+      streak: 0,
+      recentSolved: [],
+    }
   } catch (error) {
     console.error('프로필을 불러오는 중 오류 발생:', error)
-
-    // API 오류 시 Mock 데이터로 fallback (API 연동 시 주석 해제)
-    /*
-    if (process.env.NODE_ENV === 'development') {
-      profile.value = parseProfileData(mockProfileResponse)
-      userTeams.value = parseTeamsData(mockTeamsResponse)
-      stats.value = parseStatsData(mockStatsResponse)
-    }
-    */
+    // 에러 처리
   } finally {
     loading.value = false
   }
 }
 
-// API 호출 시뮬레이션 (로딩 효과를 위한 지연)
-const simulateApiCall = () => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 500)
-  })
-}
-
-// 데이터 파싱 함수들 (Mock 데이터와 API 응답 모두 동일하게 처리)
-// 프로필 데이터 파싱 함수
+// 데이터 파싱 함수들
 const parseProfileData = (data) => {
   return {
     profileImage: data.profileImage || 'https://via.placeholder.com/80x80',
@@ -283,7 +282,6 @@ const parseProfileData = (data) => {
   }
 }
 
-// 팀 데이터 파싱 함수
 const parseTeamsData = (data) => {
   return {
     teams: (data.teams || []).map((team) => ({
@@ -296,30 +294,35 @@ const parseTeamsData = (data) => {
   }
 }
 
-// 통계 데이터 파싱 함수
-const parseStatsData = (data) => {
-  return {
-    tier: data.tier || 'Unrated',
-    rating: data.rating || 0,
-    rank: data.rank || 0,
-    topPercent: data.topPercent || 0,
-    solvedProblems: data.solvedProblems || 0,
-    correctRate: data.correctRate || 0,
-    totalSubmissions: data.totalSubmissions || 0,
-    streak: data.streak || 0,
-    recentSolved: (data.recentSolved || []).map((problem) => ({
-      problemNumber: problem.problemNumber || 0,
-      title: problem.title || '제목 없음',
-      tier: problem.tier || 'Unrated',
-      solvedAt: problem.solvedAt || new Date().toISOString(),
-      experience: problem.experience || 0,
-      language: problem.language || 'Unknown',
-    })),
+// 프로필 동기화
+const syncProfile = async () => {
+  if (isSyncing.value) return
+
+  isSyncing.value = true
+  try {
+    const solvedAcId = authStore.user?.solvedAcId
+    if (!solvedAcId) {
+      throw new Error('사용자 정보를 찾을 수 없습니다.')
+    }
+
+    // 동기화 API 호출
+    await memberApi.syncProfile(solvedAcId)
+
+    // 프로필 다시 로드
+    await loadProfile()
+
+    alert('프로필이 성공적으로 동기화되었습니다.')
+  } catch (error) {
+    console.error('프로필 동기화 실패:', error)
+    alert('프로필 동기화에 실패했습니다. 잠시 후 다시 시도해주세요.')
+  } finally {
+    isSyncing.value = false
   }
 }
 
 // 컴포넌트 마운트 시 프로필 로드
-onMounted(() => {
+onMounted(async () => {
+  await authStore.initialize()
   loadProfile()
 })
 </script>
@@ -463,9 +466,48 @@ onMounted(() => {
   border-radius: 8px;
 }
 
-.sync-label {
+.sync-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.sync-button {
+  background: none;
+  border: none;
+  color: var(--samsung-blue);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
-  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.sync-button:hover:not(:disabled) {
+  background: var(--samsung-blue-alpha);
+}
+
+.sync-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .sync-time {

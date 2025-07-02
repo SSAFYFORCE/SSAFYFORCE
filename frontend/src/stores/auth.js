@@ -1,7 +1,8 @@
 // src/stores/auth.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login, logout, checkAuthStatus } from '@/utils/datatransferutil'
+import { authApi } from '@/api/AuthApi'
+import { memberApi } from '@/api/memberApi'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -11,69 +12,116 @@ export const useAuthStore = defineStore('auth', () => {
   // 계산된 속성
   const isLoggedIn = computed(() => !!user.value)
 
-  // 인증 상태 확인
-  const checkAuth = async () => {
-    isLoading.value = true
-    error.value = null
-
+  // 회원가입 관련 함수들
+  const checkNickname = async (solvedAcId) => {
     try {
-      const userData = await checkAuthStatus()
-      user.value = userData
-      return userData
-    } catch (err) {
-      error.value = err.message
-      user.value = null
-      return null
-    } finally {
-      isLoading.value = false
+      const response = await memberApi.checkNickname(solvedAcId)
+      return response.data
+    } catch (error) {
+      console.error('닉네임 확인 실패:', error)
+      throw error
+    }
+  }
+
+  const getVerificationCode = async (solvedAcId) => {
+    try {
+      const response = await authApi.getVerificationCode(solvedAcId)
+      return response
+    } catch (error) {
+      console.error('인증 코드 발급 실패:', error)
+      throw error
+    }
+  }
+
+  const verifyCode = async (solvedAcId) => {
+    try {
+      const response = await authApi.verifyCode(solvedAcId)
+      return response
+    } catch (error) {
+      console.error('인증 코드 확인 실패:', error)
+      throw error
+    }
+  }
+
+  const signUp = async (userData) => {
+    try {
+      const response = await authApi.signUp(userData)
+      return response
+    } catch (error) {
+      console.error('회원가입 실패:', error)
+      throw error
     }
   }
 
   // 로그인
-  const loginUser = async (credentials) => {
+  const login = async (credentials) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const userData = await login(credentials)
-      user.value = userData
+      console.log('로그인 요청:', credentials)
+      const response = await authApi.signIn(credentials)
+      console.log('로그인 응답:', response)
 
-      // Storage 이벤트 발생
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: 'user',
-          newValue: JSON.stringify(userData),
-          url: window.location.href,
-        }),
-      )
+      if (response?.data?.accessToken) {
+        // 토큰 저장
+        localStorage.setItem('accessToken', response.data.accessToken)
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken)
+        }
 
-      return userData
+        // 사용자 정보 가져오기
+        try {
+          // 토큰 설정 후 잠시 대기
+          await new Promise((resolve) => setTimeout(resolve, 100))
+
+          const userResponse = await memberApi.getMyProfile()
+          console.log('사용자 정보 조회 응답:', userResponse)
+
+          if (userResponse?.data) {
+            user.value = {
+              ...userResponse.data,
+              solvedAcId: credentials.solvedAcId,
+              isAuthenticated: true,
+            }
+            return user.value
+          } else {
+            throw new Error('사용자 정보가 없습니다.')
+          }
+        } catch (profileError) {
+          console.error('사용자 정보 조회 실패:', profileError)
+          // 기본 사용자 정보로 설정
+          user.value = {
+            solvedAcId: credentials.solvedAcId,
+            isAuthenticated: true,
+          }
+          return user.value
+        }
+      }
+
+      throw new Error('로그인 응답에 토큰이 없습니다.')
     } catch (err) {
-      error.value = err.message
-      return null
+      console.error('로그인 실패:', err)
+      error.value = err.message || '로그인에 실패했습니다.'
+      user.value = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      throw err
     } finally {
       isLoading.value = false
     }
   }
 
   // 로그아웃
-  const logoutUser = async () => {
+  const logout = async () => {
     isLoading.value = true
     error.value = null
 
     try {
-      await logout()
+      await authApi.signOut()
       user.value = null
-
-      // Storage 이벤트 발생
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: 'user',
-          newValue: null,
-          url: window.location.href,
-        }),
-      )
-
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
       return true
     } catch (err) {
       error.value = err.message
@@ -84,18 +132,44 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // 초기화 (앱 시작 시 호출)
-  const initialize = () => {
-    checkAuth()
+  const initialize = async () => {
+    if (localStorage.getItem('accessToken')) {
+      try {
+        const response = await memberApi.getMyProfile()
+        console.log('사용자 정보 초기화 응답:', response)
+        if (response?.data) {
+          user.value = {
+            ...response.data,
+            isAuthenticated: true,
+          }
+        } else {
+          throw new Error('사용자 정보가 없습니다.')
+        }
+      } catch (error) {
+        console.error('사용자 정보 초기화 실패:', error)
+        user.value = null
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+      }
+    }
   }
 
   return {
+    // State
     user,
     isLoading,
     error,
+
+    // Getters
     isLoggedIn,
-    checkAuth,
-    loginUser,
-    logoutUser,
+
+    // Actions
     initialize,
+    checkNickname,
+    getVerificationCode,
+    verifyCode,
+    signUp,
+    login,
+    logout,
   }
 })
