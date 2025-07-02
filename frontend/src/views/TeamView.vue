@@ -27,9 +27,7 @@
           <span>팀을 불러오는 중...</span>
         </div>
 
-        <div v-else-if="teams.length === 0" class="no-teams">
-          검색 조건에 맞는 팀이 없습니다.
-        </div>
+        <div v-else-if="teams.length === 0" class="no-teams">검색 조건에 맞는 팀이 없습니다.</div>
 
         <div v-else class="teams-grid">
           <div
@@ -106,7 +104,6 @@ import { useRouter } from 'vue-router'
 import { teamApi } from '@/api/teamApi'
 import { useAuthStore } from '@/stores/auth'
 
-
 const teams = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
@@ -132,8 +129,8 @@ const loadTeams = async () => {
   try {
     const res = await teamApi.fetchTeams()
     teams.value = res.data.teams
-      .filter(t => t.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
-      .map(t => ({
+      .filter((t) => t.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
+      .map((t) => ({
         id: t.teamId,
         name: t.name,
         description: t.description,
@@ -180,8 +177,8 @@ const handleJoinTeam = async (team) => {
 }
 
 onMounted(async () => {
-  await auth.checkAuth()
-  loadTeams()
+  await auth.initialize()
+  await loadTeams()
 })
 </script>
 
