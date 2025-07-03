@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -31,11 +32,11 @@ public interface SolvedProblemRepository extends JpaRepository<SolvedProblem, Lo
 
     boolean existsByMemberAndProblem(Member member, Problem problem);
 
-    List<SolvedProblem> findByMemberAndSolvedDateBetweenOrderBySolvedDateDesc(
-            Member member,
-            LocalDateTime startDate,
-            LocalDateTime endDate);
-
-    List<SolvedProblem> findBySolvedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<SolvedProblem> findBySolvedDateBetweenAndIsFirstSolved(LocalDateTime startDate, LocalDateTime endDate, Boolean isFirstSolved);
+
+    @EntityGraph(attributePaths = {"member", "problem"}) // fetch join 사용하기
+    List<SolvedProblem> findTop21ByMemberSolvedAcIdOrderBySolvedDateDesc(String solvedAcId);
+
+    @EntityGraph(attributePaths = {"member", "problem"})
+    List<SolvedProblem> findTop21ByMemberSolvedAcIdAndSolvedDateLessThanOrderBySolvedDateDesc(String solvedAcId, LocalDateTime cursor);
 }
