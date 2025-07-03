@@ -43,8 +43,11 @@ public class TeamController {
      * @param teamCreateRequest
      */
     @PostMapping
-    public ResponseEntity<Void> save(@RequestBody TeamCreateRequest teamCreateRequest) {
-        teamService.save(teamCreateRequest);
+    public ResponseEntity<Void> save(
+            @RequestBody TeamCreateRequest teamCreateRequest,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long memberId = userDetails.getMemberId();
+        teamService.save(teamCreateRequest, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
