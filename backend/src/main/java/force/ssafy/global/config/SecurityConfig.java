@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 "/api/v1/members/check-nickname",
                                 "/api/v1/members/password/reset",
                                 "/api/v1/rankings/**",
-                                "/api/v1/teams/rankings/**",
+                                "/api/v1/teams/**",
                                 "/api/v1/problems",
                                 "/api/v1/problems/**",
                                 "/api/v1/solved-problems/**",
