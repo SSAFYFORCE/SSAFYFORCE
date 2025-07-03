@@ -58,7 +58,7 @@ export const checkApiStatus = async (forceCheck = false) => {
       return apiStatusCache.get()
     }
 
-    const response = await axios.get(`${API_BASE_URL}/api/v1/auth/health-check`, { timeout: 3000 })
+    const response = await axios.get(`${API_BASE_URL}/auth/health-check`, { timeout: 3000 })
     const isAvailable = response.data.status === 'UP'
 
     // 상태 캐싱
