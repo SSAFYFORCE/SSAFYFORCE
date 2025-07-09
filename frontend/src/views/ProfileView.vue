@@ -8,62 +8,66 @@
       </div>
 
       <div v-else-if="profile && userTeams" class="profile-layout">
-        <!-- 왼쪽: 프로필 카드 -->
-        <div class="profile-card">
-          <div class="profile-avatar">
-            <img :src="profile.profileImage" :alt="profile.name" />
-          </div>
+        <!-- 왼쪽: 프로필 카드 (sticky 컨테이너) -->
+        <div class="profile-card-container">
+          <!-- 데스크톱용 프로필 카드 -->
+          <div class="profile-card">
+            <!-- 기존 프로필 카드 내용 전체 그대로 유지 -->
+            <div class="profile-avatar">
+              <img :src="profile.profileImage" :alt="profile.name" />
+            </div>
 
-          <div class="profile-main-info">
-            <h2 class="name">{{ profile.name }}</h2>
-            <p class="solved-ac-id">@{{ profile.solvedAcId }}</p>
+            <div class="profile-main-info">
+              <h2 class="name">{{ profile.name }}</h2>
+              <p class="solved-ac-id">@{{ profile.solvedAcId }}</p>
 
-            <!-- 동기화 버튼 (로그인 상태에 따라 다른 동작) -->
-            <div class="sync-info">
-              <div class="sync-header">
-                <span class="sync-label">마지막 동기화</span>
-                <button
-                  @click="syncProfile"
-                  class="sync-button"
-                  :class="{ 'login-required': !isLoggedIn }"
-                  :disabled="!canSync"
-                  :title="
-                    !isLoggedIn
-                      ? '로그인이 필요합니다'
-                      : isInCooldown
-                        ? `${cooldownTime}초 후 다시 시도 가능`
-                        : ''
-                  "
-                >
-                  <font-awesome-icon
-                    :icon="!isLoggedIn ? ['fas', 'user'] : ['fas', 'sync']"
-                    :class="{ 'fa-spin': isSyncing }"
-                  />
-                  {{ getSyncButtonText() }}
-                </button>
-              </div>
-              <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
-              <div v-if="syncResult" class="sync-result" :class="syncResultClass">
-                <span class="sync-result-text">{{ syncResult }}</span>
+              <!-- 동기화 버튼 (로그인 상태에 따라 다른 동작) -->
+              <div class="sync-info">
+                <div class="sync-header">
+                  <span class="sync-label">마지막 동기화</span>
+                  <button
+                    @click="syncProfile"
+                    class="sync-button"
+                    :class="{ 'login-required': !isLoggedIn }"
+                    :disabled="!canSync"
+                    :title="
+                      !isLoggedIn
+                        ? '로그인이 필요합니다'
+                        : isInCooldown
+                          ? `${cooldownTime}초 후 다시 시도 가능`
+                          : ''
+                    "
+                  >
+                    <font-awesome-icon
+                      :icon="!isLoggedIn ? ['fas', 'user'] : ['fas', 'sync']"
+                      :class="{ 'fa-spin': isSyncing }"
+                    />
+                    {{ getSyncButtonText() }}
+                  </button>
+                </div>
+                <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
+                <div v-if="syncResult" class="sync-result" :class="syncResultClass">
+                  <span class="sync-result-text">{{ syncResult }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- 소속 팀 정보 -->
-          <div class="teams-section">
-            <h3 class="teams-title">소속 팀</h3>
-            <div class="teams-list">
-              <div
-                v-for="team in userTeams.teams"
-                :key="team.id"
-                class="team-item"
-                @click="goToTeam(team.id)"
-              >
-                <div class="team-avatar">
-                  <img :src="team.profileImage" :alt="team.name" />
-                </div>
-                <div class="team-info">
-                  <span class="team-name">{{ team.name }}</span>
+            <!-- 소속 팀 정보 -->
+            <div class="teams-section">
+              <h3 class="teams-title">소속 팀</h3>
+              <div class="teams-list">
+                <div
+                  v-for="team in userTeams.teams"
+                  :key="team.id"
+                  class="team-item"
+                  @click="goToTeam(team.id)"
+                >
+                  <div class="team-avatar">
+                    <img :src="team.profileImage" :alt="team.name" />
+                  </div>
+                  <div class="team-info">
+                    <span class="team-name">{{ team.name }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -421,7 +425,7 @@ const getRelativeTime = (dateString) => {
   if (diffDays < 7) return `${diffDays}일 전`
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`
   if (diffDays < 365) return `${Math.floor(diffDays / 30)}개월 전`
-  return `${Math.floor(diffDays / 365)}년 전`
+  return '오래전' // 1년 이상인 경우
 }
 
 const goToTeam = (teamId) => {
@@ -451,6 +455,7 @@ const loadProfile = async () => {
         throw new Error('사용자를 찾을 수 없습니다.')
       }
     } catch (error) {
+      console.log(error)
       // 존재 확인 API가 없는 경우 무시하고 계속 진행
     }
 
@@ -753,17 +758,55 @@ onUnmounted(() => {
   grid-template-areas: 'profile-card recent-problems';
 }
 
-/* 프로필 카드 */
-.profile-card {
+/* 프로필 카드 컨테이너 (sticky) */
+.profile-card-container {
   grid-area: profile-card;
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+}
+
+/* 기존 .profile-card 스타일 유지 */
+.profile-card {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 2rem;
   text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'profile-card'
+      'recent-problems';
+  }
+
+  .profile-card-container {
+    position: static; /* sticky 제거 */
+  }
+}
+.profile-card-container {
+  grid-area: profile-card;
+  position: sticky;
+  top: 2rem;
   height: fit-content;
 }
 
+/* 데스크톱에서만 sticky 적용 */
+@media (min-width: 1025px) {
+  .profile-card-container {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .profile-card-container {
+    position: static;
+  }
+}
 .profile-avatar {
   margin-bottom: 1.5rem;
 }
@@ -1107,16 +1150,6 @@ onUnmounted(() => {
   font-size: 0.9rem;
   border-top: 1px solid #eee;
   margin-top: 1rem;
-}
-
-/* 반응형 디자인 */
-@media (max-width: 1024px) {
-  .profile-layout {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'profile-card'
-      'recent-problems';
-  }
 }
 
 @media (max-width: 768px) {
