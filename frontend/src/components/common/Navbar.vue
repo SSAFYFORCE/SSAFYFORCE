@@ -24,8 +24,11 @@
             class="profile-image"
           />
           <div class="dropdown" v-show="showDropdown">
-            <router-link to="/profile">프로필</router-link>
-            <router-link to="/settings">설정</router-link>
+            <!-- 프로필 링크를 사용자의 solvedAcId로 변경 -->
+            <router-link :to="`/profile/${authStore.user?.solvedAcId}`" @click="closeDropdown">
+              프로필
+            </router-link>
+            <router-link to="/settings" @click="closeDropdown">설정</router-link>
             <a href="#" @click.prevent="handleLogout">로그아웃</a>
           </div>
         </div>
@@ -49,6 +52,10 @@ const showDropdown = ref(false)
 
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value
+}
+
+const closeDropdown = () => {
+  showDropdown.value = false
 }
 
 const handleLogout = async () => {

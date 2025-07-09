@@ -42,10 +42,11 @@ const router = createRouter({
       meta: { requiresGuest: true },
     },
     {
-      path: '/profile',
+      path: '/profile/:solvedAcId?',
       name: 'profile',
-      component: () => import('@/views/ProfileView.vue'),
-      meta: { requiresAuth: true },
+      component: () => import('../views/ProfileView.vue'),
+      // 로그인 여부와 관계없이 프로필 조회 가능하도록 변경
+      meta: { requiresAuth: false },
     },
     {
       path: '/:pathMatch(.*)*',
