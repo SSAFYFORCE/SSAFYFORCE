@@ -118,7 +118,7 @@
                   rel="noopener noreferrer"
                   class="problem-link"
                 >
-                  <font-awesome-icon :icon="['fas', 'external-link-alt']" />
+                  <font-awesome-icon :icon="['fas', 'link']" />
                   문제 보기
                 </a>
                 <a
@@ -936,7 +936,7 @@ onUnmounted(() => {
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
   text-align: center;
   min-width: 50px;
@@ -960,8 +960,9 @@ onUnmounted(() => {
 }
 
 .problem-title {
+  font-weight: 600;
   color: #333;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .problem-meta {
@@ -986,14 +987,14 @@ onUnmounted(() => {
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   text-decoration: none;
   transition: background-color 0.2s;
 }
 
 .problem-link {
   color: var(--samsung-blue);
-  background: var(--samsung-blue-alpha);
+  /* background: var(--samsung-blue-alpha); */
 }
 
 .problem-link:hover {
@@ -1001,8 +1002,8 @@ onUnmounted(() => {
 }
 
 .submit-link {
-  color: #28a745;
-  background: rgba(40, 167, 69, 0.1);
+  color: #007e1d;
+  /* background: rgba(40, 167, 69, 0.1); */
 }
 
 .submit-link:hover {
