@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 "/api/v1/problems",
                                 "/api/v1/problems/**",
                                 "/api/v1/solved-problems/**",
+                                "/api/v1/batch/**",
                                 // Swagger UI 관련
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
