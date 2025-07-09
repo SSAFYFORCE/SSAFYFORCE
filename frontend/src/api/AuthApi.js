@@ -1,9 +1,15 @@
 import api from './index'
 
 export const authApi = {
-  // solved.ac 인증 관련
-  getVerificationCode: (solvedAcId) => api.post('/solved-ac/verification-code', { solvedAcId }),
-  verifyCode: (solvedAcId) => api.get(`/solved-ac/verify/${solvedAcId}`),
+  // 인증코드 발급
+  getVerificationCode: async (solvedAcId) => {
+    return await api.post('solved-ac/verification-code', { solvedAcId })
+  },
+
+  // 인증코드 확인
+  verifyCode: async (solvedAcId) => {
+    return await api.get(`solved-ac/verify/${solvedAcId}`)
+  },
 
   // 회원가입/로그인/로그아웃
   signUp: (userData) => api.post('/auth/sign-up', userData),
@@ -28,5 +34,5 @@ export const authApi = {
     }
   },
 
-  signOut: () => api.post('/auth/sign-out'),
+  signOut: () => api.post('/auth/sign-out')
 }
