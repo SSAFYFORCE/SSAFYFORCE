@@ -29,7 +29,7 @@ public class SolvedProblemSyncScheduler {
      */
     @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Seoul")
     public void runDailySyncJob(){
-        LocalDate startTime = LocalDate.now();
+        LocalDateTime startTime = LocalDateTime.now();
         String formattedTime = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         try{
