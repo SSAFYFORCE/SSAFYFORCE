@@ -1,5 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHashHistory } from 'vue-router'
+import FAQView from '@/views/FAQView.vue'
+import TermsView from '../views/TermsView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -46,6 +48,16 @@ const router = createRouter({
       name: 'profile',
       component: () => import('@/views/ProfileView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/faq',
+      name: 'FAQ',
+      component: FAQView
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: TermsView
     },
     {
       path: '/:pathMatch(.*)*',
