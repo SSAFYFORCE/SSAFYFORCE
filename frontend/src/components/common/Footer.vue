@@ -40,7 +40,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2024 SSAFY FORCE. All rights reserved.</p>
+      <p>&copy; 2025 SSAFY FORCE. All rights reserved.</p>
     </div>
   </footer>
 </template>
