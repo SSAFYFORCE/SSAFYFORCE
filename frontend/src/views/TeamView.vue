@@ -40,7 +40,7 @@
             <div class="team-header" @click="goToTeamDetail(team.id)">
               <div class="team-avatar">
                 <img
-                  :src="team.profileImage || getDefaultTeamImage(team.name)"
+                  :src="team.profileImage || defaultProfileImage"
                   :alt="team.name"
                   class="team-image"
                 />
@@ -73,7 +73,7 @@
                   class="member-item"
                 >
                   <img
-                    :src="member.profileImage || getDefaultProfileImage(member.name)"
+                    :src="member.profileImage || defaultProfileImage"
                     :alt="member.name"
                     class="member-avatar"
                   />
@@ -140,6 +140,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { teamApi } from '@/api/teamApi'
 import { useAuthStore } from '@/stores/auth'
+import defaultProfileImage from '@/mockdata/default_profile.png'
 
 const teams = ref([])
 const loading = ref(true)
@@ -158,17 +159,6 @@ const formatDate = (dateString) => {
     month: 'long',
     day: 'numeric',
   })
-}
-
-// 기본 이미지 생성
-const getDefaultTeamImage = (teamName) => {
-  const firstChar = teamName?.charAt(0).toUpperCase() || 'T'
-  return `https://via.placeholder.com/60x60/1428A0/ffffff?text=${firstChar}`
-}
-
-const getDefaultProfileImage = (memberName) => {
-  const firstChar = memberName?.charAt(0).toUpperCase() || 'U'
-  return `https://via.placeholder.com/32x32/6c757d/ffffff?text=${firstChar}`
 }
 
 // 팀 목록 로드

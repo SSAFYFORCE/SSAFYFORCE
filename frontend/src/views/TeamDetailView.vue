@@ -20,7 +20,7 @@
         <div class="team-header-card">
           <div class="team-avatar">
             <img
-              :src="team.profileImage || getDefaultTeamImage(team.name)"
+              :src="team.profileImage || defaultProfileImage"
               :alt="team.name"
               class="team-image"
             />
@@ -92,7 +92,7 @@
             >
               <div class="member-avatar">
                 <img
-                  :src="member.profileImage || getDefaultProfileImage(member.name)"
+                  :src="member.profileImage || defaultProfileImage"
                   :alt="member.name"
                   class="member-image"
                 />
@@ -156,10 +156,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { teamApi } from '@/api/teamApi'
+import defaultProfileImage from '@/mockdata/default_profile.png'
 
 const route = useRoute()
 const router = useRouter()
@@ -265,22 +266,6 @@ const formatDate = (dateString) => {
     month: 'long',
     day: 'numeric',
   })
-}
-
-const getDefaultTeamImage = (teamName) => {
-  const firstChar = teamName?.charAt(0).toUpperCase() || 'T'
-  return `https://via.placeholder.com/120x120/1428A0/ffffff?text=${firstChar}`
-}
-
-const getDefaultProfileImage = (memberName) => {
-  const firstChar = memberName?.charAt(0).toUpperCase() || 'U'
-  return `https://via.placeholder.com/60x60/6c757d/ffffff?text=${firstChar}`
-}
-
-// 컴포넌트 마운트
-// 팀 상세 페이지로 이동
-const goToTeamDetail = (teamId) => {
-  router.push(`/teams/${teamId}`)
 }
 
 onMounted(async () => {

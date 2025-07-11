@@ -27,7 +27,7 @@
           <div class="user-profile-section">
             <div class="user-image-wrapper">
               <img
-                :src="item.profileImage || '/default-profile.png'"
+                :src="item.profileImage || defaultProfileImage"
                 :alt="type === 'member' ? item.memberName : item.teamName"
                 class="profile-image"
               />
@@ -74,6 +74,7 @@
 <script setup>
 import { computed, defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
+import defaultProfileImage from '@/mockdata/default_profile.png'
 
 const props = defineProps({
   period: {

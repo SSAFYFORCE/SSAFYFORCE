@@ -599,32 +599,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 기존 CSS 변수에 추가할 부분 */
+/* CSS 변수 정의 */
 :root {
   --samsung-blue: #1428a0;
   --samsung-blue-dark: #0f3a7c;
   --samsung-blue-light: #1e5bc6;
   --samsung-blue-alpha: rgba(20, 40, 160, 0.1);
 
-  /* 티어 색상 변수 */
-  --tier-ruby: #e91e63;
-  --tier-diamond: #2196f3;
-  --tier-platinum: #00bcd4;
-  --tier-gold: #ffc107;
-  --tier-silver: #9e9e9e;
-  --tier-bronze: #8d6e63;
-  --tier-unrated: #757575;
-
-  /* 백그라운드용 티어 색상 (좀 더 진한 색상) */
-  --tier-ruby-bg: #ff0062;
-  --tier-diamond-bg: #00b4fc;
-  --tier-platinum-bg: #27e2a4;
-  --tier-gold-bg: #ec9a00;
-  --tier-silver-bg: #435f7a;
-  --tier-bronze-bg: #ad5600;
-  --tier-unrated-bg: #2d2d2d;
-
-  /* 문제 아이템 배경용 알파 색상 */
+  /* 티어 알파 색상 */
   --tier-ruby-alpha: rgba(255, 0, 98, 0.08);
   --tier-diamond-alpha: rgba(0, 180, 252, 0.08);
   --tier-platinum-alpha: rgba(39, 226, 164, 0.08);
@@ -634,98 +616,7 @@ onUnmounted(() => {
   --tier-unrated-alpha: rgba(45, 45, 45, 0.08);
 }
 
-/* 문제 아이템 기본 스타일 개선 */
-.problem-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background-color: #ffffff;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  border-left: 4px solid #e9ecef; /* 기본 왼쪽 테두리 */
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.problem-item:hover {
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
-}
-
-/* 티어별 문제 아이템 스타일 */
-.tier-ruby-item {
-  background: linear-gradient(135deg, var(--tier-ruby-alpha) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-left-color: var(--tier-ruby-bg);
-}
-
-.tier-ruby-item:hover {
-  background: linear-gradient(135deg, rgba(255, 0, 98, 0.12) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-left-color: var(--tier-ruby);
-}
-
-.tier-diamond-item {
-  background: linear-gradient(135deg, var(--tier-diamond-alpha) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-left-color: var(--tier-diamond-bg);
-}
-
-.tier-diamond-item:hover {
-  background: linear-gradient(135deg, rgba(0, 180, 252, 0.12) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-left-color: var(--tier-diamond);
-}
-
-.tier-platinum-item {
-  background: linear-gradient(135deg, var(--tier-platinum-alpha) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-left-color: var(--tier-platinum-bg);
-}
-
-.tier-platinum-item:hover {
-  background: linear-gradient(135deg, rgba(39, 226, 164, 0.12) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-left-color: var(--tier-platinum);
-}
-
-.tier-gold-item {
-  background: linear-gradient(135deg, var(--tier-gold-alpha) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-left-color: var(--tier-gold-bg);
-}
-
-.tier-gold-item:hover {
-  background: linear-gradient(135deg, rgba(236, 154, 0, 0.12) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-left-color: var(--tier-gold);
-}
-
-.tier-silver-item {
-  background: linear-gradient(135deg, var(--tier-silver-alpha) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-left-color: var(--tier-silver-bg);
-}
-
-.tier-silver-item:hover {
-  background: linear-gradient(135deg, rgba(67, 95, 122, 0.12) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-left-color: var(--tier-silver);
-}
-
-.tier-bronze-item {
-  background: linear-gradient(135deg, var(--tier-bronze-alpha) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-left-color: var(--tier-bronze-bg);
-}
-
-.tier-bronze-item:hover {
-  background: linear-gradient(135deg, rgba(173, 86, 0, 0.12) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-left-color: var(--tier-bronze);
-}
-
-.tier-unrated-item {
-  background: linear-gradient(135deg, var(--tier-unrated-alpha) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border-left-color: var(--tier-unrated-bg);
-}
-
-.tier-unrated-item:hover {
-  background: linear-gradient(135deg, rgba(45, 45, 45, 0.12) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-left-color: var(--tier-unrated);
-}
-
+/* 기본 레이아웃 */
 .profile-view {
   min-height: calc(100vh - 64px);
   background-color: #f8f9fa;
@@ -738,6 +629,14 @@ onUnmounted(() => {
   padding: 0 2rem;
 }
 
+.profile-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  grid-template-areas: 'profile-card recent-problems';
+}
+
+/* 로딩 상태 */
 .loading {
   display: flex;
   flex-direction: column;
@@ -747,23 +646,7 @@ onUnmounted(() => {
   gap: 1rem;
 }
 
-/* 프로필 레이아웃 */
-.profile-layout {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 2rem;
-  grid-template-areas: 'profile-card recent-problems';
-}
-
-/* 프로필 카드 컨테이너 (sticky) */
-.profile-card-container {
-  grid-area: profile-card;
-  position: sticky;
-  top: 2rem;
-  height: fit-content;
-}
-
-/* 기존 .profile-card 스타일 유지 */
+/* 프로필 카드 */
 .profile-card {
   background: white;
   border-radius: 12px;
@@ -772,38 +655,6 @@ onUnmounted(() => {
   text-align: center;
 }
 
-@media (max-width: 1024px) {
-  .profile-layout {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'profile-card'
-      'recent-problems';
-  }
-
-  .profile-card-container {
-    position: static; /* sticky 제거 */
-  }
-}
-.profile-card-container {
-  grid-area: profile-card;
-  position: sticky;
-  top: 2rem;
-  height: fit-content;
-}
-
-/* 데스크톱에서만 sticky 적용 */
-@media (min-width: 1025px) {
-  .profile-card-container {
-    position: sticky;
-    top: 2rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .profile-card-container {
-    position: static;
-  }
-}
 .profile-avatar {
   margin-bottom: 1.5rem;
 }
@@ -834,6 +685,7 @@ onUnmounted(() => {
   margin-bottom: 1rem;
 }
 
+/* 동기화 섹션 */
 .sync-info {
   display: flex;
   flex-direction: column;
@@ -875,19 +727,6 @@ onUnmounted(() => {
 .sync-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.fa-spin {
-  animation: fa-spin 1s infinite linear;
-}
-
-@keyframes fa-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 .sync-time {
@@ -992,12 +831,6 @@ onUnmounted(() => {
   color: #333;
 }
 
-/* 통계 섹션 - 제거됨 */
-.profile-stats {
-  grid-area: profile-stats;
-  /* 빈 공간 */
-}
-
 /* 최근 해결한 문제 섹션 */
 .recent-problems-section {
   grid-area: recent-problems;
@@ -1030,6 +863,7 @@ onUnmounted(() => {
   gap: 0.75rem;
 }
 
+/* 문제 아이템 기본 스타일 */
 .problem-item {
   display: flex;
   align-items: center;
@@ -1038,6 +872,7 @@ onUnmounted(() => {
   background-color: #ffffff;
   border: 1px solid #e9ecef;
   border-radius: 8px;
+  border-left: 4px solid #e9ecef;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -1046,7 +881,9 @@ onUnmounted(() => {
   background-color: #f8f9fa;
   border-color: #dee2e6;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
+
 .problem-tier-badge {
   min-width: 60px;
 }
@@ -1107,14 +944,13 @@ onUnmounted(() => {
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-size: 0rem;
+  font-size: 0.9rem;
   text-decoration: none;
   transition: background-color 0.2s;
 }
 
 .problem-link {
   color: var(--samsung-blue);
-  /* background: var(--samsung-blue-alpha); */
 }
 
 .problem-link:hover {
@@ -1123,13 +959,13 @@ onUnmounted(() => {
 
 .submit-link {
   color: #007e1d;
-  /* background: rgba(40, 167, 69, 0.1); */
 }
 
 .submit-link:hover {
   background: rgba(40, 167, 69, 0.2);
 }
 
+/* 무한스크롤 관련 */
 .loading-more {
   display: flex;
   align-items: center;
@@ -1149,6 +985,30 @@ onUnmounted(() => {
   margin-top: 1rem;
 }
 
+/* 애니메이션 */
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'profile-card'
+      'recent-problems';
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 1rem;
@@ -1164,11 +1024,6 @@ onUnmounted(() => {
     flex-direction: row;
     justify-content: space-between;
     min-width: auto;
-  }
-
-  .solve-stats {
-    flex-direction: column;
-    gap: 1rem;
   }
 
   .problem-meta {
