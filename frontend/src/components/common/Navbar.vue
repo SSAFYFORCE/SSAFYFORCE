@@ -24,20 +24,12 @@
             class="profile-image"
           />
           <div class="dropdown" v-show="showDropdown">
-            <!-- 프로필 링크를 사용자의 solvedAcId로 변경 -->
             <router-link :to="`/profile/${authStore.user?.solvedAcId}`" @click="closeDropdown">
               프로필
             </router-link>
             <router-link to="/settings" @click="closeDropdown">설정</router-link>
-            <a href="#" @click.prevent="handleLogout">로그아웃</a>
             <a href="#" @click.prevent="handlePasswordReset">비밀번호 재설정</a>
             <a href="#" @click.prevent="handleDeleteAccount" class="danger">회원 탈퇴</a>
-            <!-- 프로필 링크를 사용자의 solvedAcId로 변경 -->
-            <router-link :to="`/profile/${authStore.user?.solvedAcId}`" @click="closeDropdown">
-              프로필
-            </router-link>
-            <router-link to="/settings" @click="closeDropdown">설정</router-link>
-            <a href="#" @click.prevent="handleLogout">로그아웃</a>
           </div>
         </div>
         <a href="#" @click.prevent="handleLogout" class="login-button">로그아웃</a>
