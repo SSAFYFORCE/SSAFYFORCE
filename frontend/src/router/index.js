@@ -27,6 +27,12 @@ const router = createRouter({
       component: () => import('../views/TeamCreateView.vue'),
     },
     {
+      path: '/teams/:teamId',
+      name: 'team-detail',
+      component: () => import('../views/TeamDetailView.vue'),
+      props: true,
+    },
+    {
       path: '/ranking',
       name: 'ranking',
       component: () => import('../views/RankingView.vue'),
@@ -53,12 +59,12 @@ const router = createRouter({
     {
       path: '/faq',
       name: 'FAQ',
-      component: FAQView
+      component: FAQView,
     },
     {
       path: '/terms',
       name: 'terms',
-      component: TermsView
+      component: TermsView,
     },
     {
       path: '/:pathMatch(.*)*',
