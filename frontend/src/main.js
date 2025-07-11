@@ -29,6 +29,7 @@ import {
   faBlog,
   faHome,
   faArrowLeft,
+  faLink,
 } from '@fortawesome/free-solid-svg-icons'
 import { faGithub, faTwitter, faDiscord, faGoogle } from '@fortawesome/free-brands-svg-icons'
 
@@ -59,6 +60,7 @@ library.add(
   faTwitter,
   faDiscord,
   faGoogle,
+  faLink,
 )
 
 const app = createApp(App)
