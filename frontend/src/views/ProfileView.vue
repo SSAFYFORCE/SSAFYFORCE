@@ -426,7 +426,7 @@ const getRelativeTime = (dateString) => {
 }
 
 const goToTeam = (teamId) => {
-  router.push(`/team/${teamId}`)
+  router.push(`/teams/${teamId}`)
 }
 
 const loadProfile = async () => {
