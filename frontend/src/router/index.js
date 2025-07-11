@@ -1,5 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHashHistory } from 'vue-router'
+import FAQView from '@/views/FAQView.vue'
+import TermsView from '../views/TermsView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -47,6 +49,16 @@ const router = createRouter({
       component: () => import('../views/ProfileView.vue'),
       // 로그인 여부와 관계없이 프로필 조회 가능하도록 변경
       meta: { requiresAuth: false },
+    },
+    {
+      path: '/faq',
+      name: 'FAQ',
+      component: FAQView
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: TermsView
     },
     {
       path: '/:pathMatch(.*)*',

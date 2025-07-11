@@ -48,6 +48,9 @@ public class SecurityConfig {
                                 "/api/v1/problems/**",
                                 "/api/v1/solved-problems/**",
                                 "/api/v1/batch/**",
+                                // 비밀번호 재설정 관련 앤드포인트
+                                "/api/v1/auth/verification-code",
+                                "/api/v1/auth/verify-code",
                                 // Swagger UI 관련
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
