@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -55,24 +55,36 @@ public class TeamService {
     }
 
     /**
-     * 모든 팀 정보와 소속 팀원들을 가져오는 메서드
+     * 모든 팀 정보와 소속 팀원들을 가져오는 메서드 (개선됨)
      * @return TeamListResponse
      */
     public TeamListResponse findAllTeams() {
         log.info("findAllTeams 실행");
 
         List<Team> all = teamRepository.findAll();
+
+        // 1. 모든 팀의 실제 멤버 수를 한 번의 쿼리로 조회
+        Map<Long, Long> teamMemberCounts = teamMemberRepository.findMemberCountsByTeamIds(
+                all.stream().map(Team::getId).collect(Collectors.toList())
+        );
+
+        // 2. 각 팀의 미리보기 멤버들을 조회 (최대 3명)
         List<TeamResponse> teamList = new ArrayList<>();
 
         for (Team team : all) {
+            // 미리보기용 멤버 정보 (최대 3명)
             List<TeamMemberDto> members = teamMemberRepository.findPreviewMemberByTeamId(team.getId());
+
+            // 실제 멤버 수 조회
+            Long actualMemberCount = teamMemberCounts.getOrDefault(team.getId(), 0L);
 
             // Member → MemberResponse 변환
             List<TeamMemberResponse> memberResponses = members.stream()
                     .map(TeamMemberResponse::from)
                     .toList();
 
-            teamList.add(TeamResponse.of(team, memberResponses));
+            // TeamResponse 생성 시 실제 멤버 수와 미리보기 멤버 정보 사용
+            teamList.add(TeamResponse.ofWithActualCount(team, memberResponses, actualMemberCount.intValue()));
         }
 
         return TeamListResponse.to(teamList);
