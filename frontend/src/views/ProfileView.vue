@@ -11,151 +11,150 @@
         <!-- 왼쪽: 프로필 카드 -->
         <div class="profile-card">
           <div class="profile-avatar">
-            <img :src="profile.profileImage" :alt="profile.name" />
+            <img :src="authStore.user?.profileImage || defaultProfileImage" :alt="profile.name" />
           </div>
 
-            <div class="profile-main-info">
-              <h2 class="name">{{ profile.name }}</h2>
-              <p class="solved-ac-id">@{{ profile.solvedAcId }}</p>
+          <div class="profile-main-info">
+            <h2 class="name">{{ profile.name }}</h2>
+            <p class="solved-ac-id">@{{ profile.solvedAcId }}</p>
 
-              <!-- 동기화 버튼 (로그인 상태에 따라 다른 동작) -->
-              <div class="sync-info">
-                <div class="sync-header">
-                  <span class="sync-label">마지막 동기화</span>
-                  <button
-                    @click="syncProfile"
-                    class="sync-button"
-                    :class="{ 'login-required': !isLoggedIn }"
-                    :disabled="!canSync"
-                    :title="
-                      !isLoggedIn
-                        ? '로그인이 필요합니다'
-                        : isInCooldown
-                          ? `${cooldownTime}초 후 다시 시도 가능`
-                          : ''
-                    "
-                  >
-                    <font-awesome-icon
-                      :icon="!isLoggedIn ? ['fas', 'user'] : ['fas', 'sync']"
-                      :class="{ 'fa-spin': isSyncing }"
-                    />
-                    {{ getSyncButtonText() }}
-                  </button>
-                </div>
-                <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
-                <div v-if="syncResult" class="sync-result" :class="syncResultClass">
-                  <span class="sync-result-text">{{ syncResult }}</span>
-                </div>
+            <!-- 동기화 버튼 (로그인 상태에 따라 다른 동작) -->
+            <div class="sync-info">
+              <div class="sync-header">
+                <span class="sync-label">마지막 동기화</span>
+                <button
+                  @click="syncProfile"
+                  class="sync-button"
+                  :class="{ 'login-required': !isLoggedIn }"
+                  :disabled="!canSync"
+                  :title="
+                    !isLoggedIn
+                      ? '로그인이 필요합니다'
+                      : isInCooldown
+                        ? `${cooldownTime}초 후 다시 시도 가능`
+                        : ''
+                  "
+                >
+                  <font-awesome-icon
+                    :icon="!isLoggedIn ? ['fas', 'user'] : ['fas', 'sync']"
+                    :class="{ 'fa-spin': isSyncing }"
+                  />
+                  {{ getSyncButtonText() }}
+                </button>
+              </div>
+              <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
+              <div v-if="syncResult" class="sync-result" :class="syncResultClass">
+                <span class="sync-result-text">{{ syncResult }}</span>
               </div>
             </div>
+          </div>
 
-            <!-- 소속 팀 정보 -->
-            <div class="teams-section">
-              <h3 class="teams-title">소속 팀</h3>
-              <div class="teams-list">
-                <div
-                  v-for="team in userTeams.teams"
-                  :key="team.id"
-                  class="team-item"
-                  @click="goToTeam(team.id)"
-                >
-                  <div class="team-avatar">
-                    <img :src="team.profileImage" :alt="team.name" />
-                  </div>
-                  <div class="team-info">
-                    <span class="team-name">{{ team.name }}</span>
-                  </div>
+          <!-- 소속 팀 정보 -->
+          <div class="teams-section">
+            <h3 class="teams-title">소속 팀</h3>
+            <div class="teams-list">
+              <div
+                v-for="team in userTeams.teams"
+                :key="team.id"
+                class="team-item"
+                @click="goToTeam(team.id)"
+              >
+                <div class="team-avatar">
+                  <img :src="team.profileImage" :alt="team.name" />
+                </div>
+                <div class="team-info">
+                  <span class="team-name">{{ team.name }}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 중앙/오른쪽: 빈 공간 또는 다른 컨텐츠 -->
-        <div class="profile-stats">
-          <!-- 통계 섹션들 제거됨 -->
+      <!-- 중앙/오른쪽: 빈 공간 또는 다른 컨텐츠 -->
+      <div class="profile-stats">
+        <!-- 통계 섹션들 제거됨 -->
+      </div>
+
+      <!-- 하단: 최근 해결한 문제 (무한스크롤) -->
+      <div class="recent-problems-section">
+        <h3>최근 해결한 문제</h3>
+
+        <div v-if="loadingProblems && solvedProblems.length === 0" class="loading-problems">
+          <font-awesome-icon :icon="['fas', 'spinner']" spin />
+          <span>문제를 불러오는 중...</span>
         </div>
 
-        <!-- 하단: 최근 해결한 문제 (무한스크롤) -->
-        <div class="recent-problems-section">
-          <h3>최근 해결한 문제</h3>
+        <div v-else-if="solvedProblems.length === 0" class="no-problems">
+          해결한 문제가 없습니다.
+        </div>
 
-          <div v-if="loadingProblems && solvedProblems.length === 0" class="loading-problems">
-            <font-awesome-icon :icon="['fas', 'spinner']" spin />
-            <span>문제를 불러오는 중...</span>
-          </div>
+        <div v-else class="problems-list">
+          <div
+            v-for="(problem, index) in solvedProblems"
+            :key="`${problem.id}-${index}`"
+            class="problem-item"
+            :style="{ backgroundColor: getTierColor(problem.problemTier).backgroundColor }"
+          >
+            <div class="problem-tier-badge">
+              <span
+                class="tier-indicator"
+                :style="{ backgroundColor: getTierColor(problem.problemTier).badgeColor }"
+              >
+                {{ getTierShortName(problem.problemTier) }}
+              </span>
+            </div>
 
-          <div v-else-if="solvedProblems.length === 0" class="no-problems">
-            해결한 문제가 없습니다.
-          </div>
-
-          <div v-else class="problems-list">
-            <div
-              v-for="(problem, index) in solvedProblems"
-              :key="`${problem.id}-${index}`"
-              class="problem-item"
-              :style="{ backgroundColor: getTierColor(problem.problemTier).backgroundColor }"
-            >
-              <div class="problem-tier-badge">
-                <span
-                  class="tier-indicator"
-                  :style="{ backgroundColor: getTierColor(problem.problemTier).badgeColor }"
-                >
-                  {{ getTierShortName(problem.problemTier) }}
+            <div class="problem-info">
+              <div class="problem-header">
+                <span class="problem-number">{{ problem.problemNumber }}</span>
+                <span class="problem-title">{{ problem.problemTitle }}</span>
+              </div>
+              <div class="problem-meta">
+                <span class="solve-language">{{ problem.language }}</span>
+                <span class="solve-time">{{ getRelativeTime(problem.solvedDate) }}</span>
+                <span class="time-complexity" v-if="problem.timeComplexity">
+                  시간: {{ problem.timeComplexity }}ms
+                </span>
+                <span class="space-complexity" v-if="problem.spaceComplexity">
+                  메모리: {{ problem.spaceComplexity }}KB
                 </span>
               </div>
-
-              <div class="problem-info">
-                <div class="problem-header">
-                  <span class="problem-number">{{ problem.problemNumber }}</span>
-                  <span class="problem-title">{{ problem.problemTitle }}</span>
-                </div>
-                <div class="problem-meta">
-                  <span class="solve-language">{{ problem.language }}</span>
-                  <span class="solve-time">{{ getRelativeTime(problem.solvedDate) }}</span>
-                  <span class="time-complexity" v-if="problem.timeComplexity">
-                    시간: {{ problem.timeComplexity }}ms
-                  </span>
-                  <span class="space-complexity" v-if="problem.spaceComplexity">
-                    메모리: {{ problem.spaceComplexity }}KB
-                  </span>
-                </div>
-              </div>
-
-              <div class="problem-actions">
-                <a
-                  v-if="problem.problemUrl"
-                  :href="problem.problemUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="problem-link"
-                >
-                  <font-awesome-icon :icon="['fas', 'link']" />
-                  문제 보기
-                </a>
-                <a
-                  v-if="problem.submitUrl"
-                  :href="problem.submitUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="submit-link"
-                >
-                  <font-awesome-icon :icon="['fas', 'code']" />
-                  제출 보기
-                </a>
-              </div>
             </div>
 
-            <!-- 무한스크롤 로딩 인디케이터 -->
-            <div v-if="loadingProblems" class="loading-more">
-              <font-awesome-icon :icon="['fas', 'spinner']" spin />
-              <span>더 많은 문제를 불러오는 중...</span>
+            <div class="problem-actions">
+              <a
+                v-if="problem.problemUrl"
+                :href="problem.problemUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="problem-link"
+              >
+                <font-awesome-icon :icon="['fas', 'link']" />
+                문제 보기
+              </a>
+              <a
+                v-if="problem.submitUrl"
+                :href="problem.submitUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="submit-link"
+              >
+                <font-awesome-icon :icon="['fas', 'code']" />
+                제출 보기
+              </a>
             </div>
+          </div>
 
-            <!-- 더 이상 로드할 문제가 없는 경우 -->
-            <div v-else-if="!hasMore && solvedProblems.length > 0" class="no-more-problems">
-              모든 문제를 불러왔습니다.
-            </div>
+          <!-- 무한스크롤 로딩 인디케이터 -->
+          <div v-if="loadingProblems" class="loading-more">
+            <font-awesome-icon :icon="['fas', 'spinner']" spin />
+            <span>더 많은 문제를 불러오는 중...</span>
+          </div>
+
+          <!-- 더 이상 로드할 문제가 없는 경우 -->
+          <div v-else-if="!hasMore && solvedProblems.length > 0" class="no-more-problems">
+            모든 문제를 불러왔습니다.
           </div>
         </div>
       </div>
@@ -169,6 +168,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { memberApi } from '@/api/memberApi'
 import { solvedProblemApi } from '@/api/solvedProblemApi'
+import defaultProfileImage from '@/mockdata/default_profile.png'
 
 const router = useRouter()
 const route = useRoute()
