@@ -48,6 +48,10 @@ dependencies {
 
 	// Netty DNS resolver for MacOS
 	implementation 'io.netty:netty-resolver-dns-native-macos:4.1.94.Final:osx-aarch_64'
+	//s3 연동하기위한 의존성 추가
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.689'
+
 }
 
 tasks.named('test') {

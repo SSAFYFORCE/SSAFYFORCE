@@ -54,5 +54,13 @@ public class TeamMemberRepository {
                 .getSingleResult();
         return cnt > 0;
     }
+    public List<TeamMember> findByMember_Id(Long memberId) {
+        return em.createQuery(
+                        "SELECT tm FROM TeamMember tm JOIN FETCH tm.team WHERE tm.member.id = :memberId",
+                        TeamMember.class
+                )
+                .setParameter("memberId", memberId)
+                .getResultList();
+    }
 
 }

@@ -1,6 +1,7 @@
 package force.ssafy.domain.team.controller;
 
 import force.ssafy.domain.team.dto.request.TeamCreateRequest;
+import force.ssafy.domain.team.dto.response.MyTeamListResponse;
 import force.ssafy.domain.team.dto.response.TeamListResponse;
 import force.ssafy.domain.team.dto.response.TeamResponse;
 import force.ssafy.domain.team.service.TeamService;
@@ -61,5 +62,16 @@ public class TeamController {
         Long memberId = userDetails.getMemberId();
         teamService.joinTeam(memberId, teamId);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 내가 가입한 팀 목록 조회
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return TeamListResponse
+     */
+    @GetMapping("/me")
+    public ResponseEntity<MyTeamListResponse> getMyTeams(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long memberId = userDetails.getMemberId();
+        return ResponseEntity.ok().body(teamService.findMyTeams(memberId));
     }
 }

@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -107,5 +109,19 @@ public class MemberController {
             @PathVariable String solvedAcId) {
         MemberTeamsResponse response = memberService.getMemberTeams(solvedAcId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 프로필 이미지 변경 API
+    */
+    @PostMapping("/profile-image")
+    public ResponseEntity<ProfileImageResponse> uploadProfileImage(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails  // 인증 방식에 따라 수정 필요
+    ) {
+        // UserDetails에서 solvedAcId를 가져오는 방식으로 수정 필요
+        String solvedAcId = userDetails.getUsername();  // 실제 구현에서는 적절한 방식으로 solvedAcId를 가져와야 함
+        String imageUrl = memberService.saveProfileImage(file, solvedAcId);
+        return ResponseEntity.ok(new ProfileImageResponse(imageUrl));
     }
 }

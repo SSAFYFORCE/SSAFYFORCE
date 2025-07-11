@@ -61,6 +61,13 @@ public class Member implements UserDetails {
     @Column(nullable = false,name = "last_problem_sync_time")
     private LocalDateTime lastProblemSyncTime;
 
+    @Column
+    private String profileImageUrl;
+
+    public void updateProfileImage(String imageUrl) {
+        this.profileImageUrl = imageUrl;
+    }
+
     @OneToMany(mappedBy = "member")
     private List<TeamMember> teamMembers = new ArrayList<>();
 
