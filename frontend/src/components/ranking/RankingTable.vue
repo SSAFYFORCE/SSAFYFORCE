@@ -118,9 +118,9 @@ const displayRankings = computed(() => {
 
 const handleRowClick = (item) => {
   if (props.type === 'member') {
-    router.push(`/profile/${item.memberId || item.id}`)
+    router.push(`/profile/${item.solvedAcId}`)
   } else {
-    router.push(`/teams/${item.teamId || item.id}`)
+    router.push(`/teams/${item.teamId}`)
   }
   emit('user-click', item)
 }
