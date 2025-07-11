@@ -45,8 +45,8 @@ button {
   --tier-ruby: #e91e63;
   --tier-diamond: #2196f3;
   --tier-platinum: #00bcd4;
-  --tier-gold: #eeb301;
-  --tier-silver: #838383;
+  --tier-gold: #ffc107;
+  --tier-silver: #9e9e9e;
   --tier-bronze: #8d6e63;
   --tier-unrated: #757575;
 
@@ -54,9 +54,9 @@ button {
   --tier-ruby-bg: #ffb2cf;
   --tier-diamond-bg: #b8cbff;
   --tier-platinum-bg: #cefded;
-  --tier-gold-bg: #fff0c0;
-  --tier-silver-bg: #d6d6d6;
-  --tier-bronze-bg: #ebe0d5;
+  --tier-gold-bg: #ffe9c0;
+  --tier-silver-bg: #c2c2c2;
+  --tier-bronze-bg: #e6ddd4;
   --tier-unrated-bg: #e4e4e4;
 }
 
