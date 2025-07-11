@@ -8,51 +8,66 @@
       </div>
 
       <div v-else-if="profile && userTeams" class="profile-layout">
-        <!-- 왼쪽: 프로필 카드 -->
-        <div class="profile-card">
-          <div class="profile-avatar">
-            <img :src="profile.profileImage" :alt="profile.name" />
-          </div>
+        <!-- 왼쪽: 프로필 카드 (sticky 컨테이너) -->
+        <div class="profile-card-container">
+          <!-- 데스크톱용 프로필 카드 -->
+          <div class="profile-card">
+            <!-- 기존 프로필 카드 내용 전체 그대로 유지 -->
+            <div class="profile-avatar">
+              <img :src="profile.profileImage" :alt="profile.name" />
+            </div>
 
-          <div class="profile-main-info">
-            <h2 class="name">{{ profile.name }}</h2>
-            <p class="solved-ac-id">@{{ profile.solvedAcId }}</p>
+            <div class="profile-main-info">
+              <h2 class="name">{{ profile.name }}</h2>
+              <p class="solved-ac-id">@{{ profile.solvedAcId }}</p>
 
-            <div class="sync-info">
-              <div class="sync-header">
-                <span class="sync-label">마지막 동기화</span>
-                <button
-                  @click="syncProfile"
-                  class="sync-button"
-                  :disabled="isSyncing || isInCooldown"
-                  :title="isInCooldown ? `${cooldownTime}초 후 다시 시도 가능` : ''"
-                >
-                  <font-awesome-icon :icon="['fas', 'sync']" :class="{ 'fa-spin': isSyncing }" />
-                  {{ getSyncButtonText() }}
-                </button>
-              </div>
-              <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
-              <div v-if="syncResult" class="sync-result" :class="syncResultClass">
-                <span class="sync-result-text">{{ syncResult }}</span>
+              <!-- 동기화 버튼 (로그인 상태에 따라 다른 동작) -->
+              <div class="sync-info">
+                <div class="sync-header">
+                  <span class="sync-label">마지막 동기화</span>
+                  <button
+                    @click="syncProfile"
+                    class="sync-button"
+                    :class="{ 'login-required': !isLoggedIn }"
+                    :disabled="!canSync"
+                    :title="
+                      !isLoggedIn
+                        ? '로그인이 필요합니다'
+                        : isInCooldown
+                          ? `${cooldownTime}초 후 다시 시도 가능`
+                          : ''
+                    "
+                  >
+                    <font-awesome-icon
+                      :icon="!isLoggedIn ? ['fas', 'user'] : ['fas', 'sync']"
+                      :class="{ 'fa-spin': isSyncing }"
+                    />
+                    {{ getSyncButtonText() }}
+                  </button>
+                </div>
+                <span class="sync-time">{{ getRelativeTime(profile.lastProblemSyncTime) }}</span>
+                <div v-if="syncResult" class="sync-result" :class="syncResultClass">
+                  <span class="sync-result-text">{{ syncResult }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- 소속 팀 정보 -->
-          <div class="teams-section">
-            <h3 class="teams-title">소속 팀</h3>
-            <div class="teams-list">
-              <div
-                v-for="team in userTeams.teams"
-                :key="team.id"
-                class="team-item"
-                @click="goToTeam(team.id)"
-              >
-                <div class="team-avatar">
-                  <img :src="team.profileImage" :alt="team.name" />
-                </div>
-                <div class="team-info">
-                  <span class="team-name">{{ team.name }}</span>
+            <!-- 소속 팀 정보 -->
+            <div class="teams-section">
+              <h3 class="teams-title">소속 팀</h3>
+              <div class="teams-list">
+                <div
+                  v-for="team in userTeams.teams"
+                  :key="team.id"
+                  class="team-item"
+                  @click="goToTeam(team.id)"
+                >
+                  <div class="team-avatar">
+                    <img :src="team.profileImage" :alt="team.name" />
+                  </div>
+                  <div class="team-info">
+                    <span class="team-name">{{ team.name }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -118,7 +133,7 @@
                   rel="noopener noreferrer"
                   class="problem-link"
                 >
-                  <font-awesome-icon :icon="['fas', 'external-link-alt']" />
+                  <font-awesome-icon :icon="['fas', 'link']" />
                   문제 보기
                 </a>
                 <a
@@ -152,13 +167,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { memberApi } from '@/api/memberApi'
 import { solvedProblemApi } from '@/api/solvedProblemApi'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 // 반응성 데이터
@@ -178,10 +194,21 @@ const isSyncing = ref(false)
 const syncResult = ref('')
 const syncResultClass = ref('')
 
+// 로그인 상태 확인
+const isLoggedIn = ref(false)
+
+// 동기화 버튼 활성화 여부 체크
+const canSync = computed(() => {
+  return isLoggedIn.value && !isSyncing.value && !isInCooldown.value
+})
+
 // 쿨타임 관리
 const isInCooldown = ref(false)
 const cooldownTime = ref(0)
 let cooldownInterval = null
+
+// 현재 프로필을 보고 있는 사용자가 본인인지 확인
+const isOwnProfile = ref(false)
 
 // 무한스크롤 관련 메서드
 const loadSolvedProblems = async (isInitial = false) => {
@@ -189,7 +216,7 @@ const loadSolvedProblems = async (isInitial = false) => {
 
   try {
     loadingProblems.value = true
-    const solvedAcId = authStore.user?.solvedAcId
+    const solvedAcId = getCurrentSolvedAcId()
 
     if (!solvedAcId) {
       throw new Error('사용자 정보를 찾을 수 없습니다.')
@@ -217,6 +244,23 @@ const loadSolvedProblems = async (isInitial = false) => {
   } finally {
     loadingProblems.value = false
   }
+}
+
+// 현재 보고 있는 사용자의 solvedAcId를 가져오는 함수
+const getCurrentSolvedAcId = () => {
+  // URL에서 solvedAcId 파라미터가 있으면 그것을 사용, 없으면 로그인한 사용자의 ID 사용
+  return route.params.solvedAcId || authStore.user?.solvedAcId
+}
+
+// 본인 프로필인지 확인하는 함수
+const checkIsOwnProfile = () => {
+  const currentSolvedAcId = getCurrentSolvedAcId()
+  isOwnProfile.value = currentSolvedAcId === authStore.user?.solvedAcId
+}
+
+// 로그인 상태 확인 함수
+const checkLoginStatus = () => {
+  isLoggedIn.value = !!authStore.user
 }
 
 // 스크롤 이벤트 핸들러
@@ -249,9 +293,10 @@ const startCooldown = () => {
 }
 
 const getSyncButtonText = () => {
+  if (!isLoggedIn.value) return '로그인 필요'
   if (isSyncing.value) return '동기화 중...'
   if (isInCooldown.value) return `${cooldownTime.value}초`
-  return '동기화'
+  return isOwnProfile.value ? '동기화' : '동기화하기'
 }
 
 // getTierColor 함수를 개선하여 배경색과 기본 색상을 모두 반환
@@ -380,7 +425,7 @@ const getRelativeTime = (dateString) => {
   if (diffDays < 7) return `${diffDays}일 전`
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`
   if (diffDays < 365) return `${Math.floor(diffDays / 30)}개월 전`
-  return `${Math.floor(diffDays / 365)}년 전`
+  return '오래전' // 1년 이상인 경우
 }
 
 const goToTeam = (teamId) => {
@@ -390,12 +435,28 @@ const goToTeam = (teamId) => {
 const loadProfile = async () => {
   loading.value = true
   try {
-    // 현재 로그인한 사용자의 정보 사용
-    const solvedAcId = authStore.user?.solvedAcId
-    console.log('solvedAcId:', solvedAcId)
+    const solvedAcId = getCurrentSolvedAcId()
+    console.log('현재 조회할 solvedAcId:', solvedAcId)
 
     if (!solvedAcId) {
       throw new Error('사용자 정보를 찾을 수 없습니다.')
+    }
+
+    // 본인 프로필인지 확인
+    checkIsOwnProfile()
+
+    // 로그인 상태 확인
+    checkLoginStatus()
+
+    // 사용자 존재 여부 먼저 확인 (선택사항)
+    try {
+      const existsResponse = await memberApi.checkUserExists(solvedAcId)
+      if (!existsResponse.exists) {
+        throw new Error('사용자를 찾을 수 없습니다.')
+      }
+    } catch (error) {
+      console.log(error)
+      // 존재 확인 API가 없는 경우 무시하고 계속 진행
     }
 
     // API 호출
@@ -415,6 +476,11 @@ const loadProfile = async () => {
     await loadSolvedProblems(true)
   } catch (error) {
     console.error('프로필을 불러오는 중 오류 발생:', error)
+    // 에러 발생 시 404 페이지로 이동 또는 에러 메시지 표시
+    if (error.response?.status === 404 || error.message.includes('찾을 수 없습니다')) {
+      // 404 페이지로 이동하거나 에러 상태 설정
+      router.push('/404')
+    }
   } finally {
     loading.value = false
   }
@@ -442,8 +508,14 @@ const parseTeamsData = (data) => {
   }
 }
 
-// 프로필 동기화
+// 프로필 동기화 (로그인한 사용자만 가능)
 const syncProfile = async () => {
+  if (!isLoggedIn.value) {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
+    return
+  }
+
   if (isSyncing.value || isInCooldown.value) return
 
   isSyncing.value = true
@@ -451,20 +523,21 @@ const syncProfile = async () => {
   syncResultClass.value = ''
 
   try {
-    const solvedAcId = authStore.user?.solvedAcId
+    const solvedAcId = getCurrentSolvedAcId()
     if (!solvedAcId) {
       throw new Error('사용자 정보를 찾을 수 없습니다.')
     }
 
     // 사용자에게 시간이 오래 걸릴 수 있음을 알림
-    syncResult.value = '동기화 중입니다... 시간이 오래 걸릴 수 있습니다.'
+    const targetName = isOwnProfile.value ? '내' : `${profile.value.name}님의`
+    syncResult.value = `${targetName} 프로필을 동기화 중입니다... 시간이 오래 걸릴 수 있습니다.`
     syncResultClass.value = 'info'
 
     // 동기화 API 호출 (2분 타임아웃)
     const result = await solvedProblemApi.syncSolvedProblems(solvedAcId)
     const data = result.data
 
-    syncResult.value = `${data.resultCount}개의 새로운 문제가 동기화되었습니다.`
+    syncResult.value = `${profile.value.name}님의 ${data.resultCount}개의 새로운 문제가 동기화되었습니다.`
     syncResultClass.value = 'success'
 
     // 해결한 문제 다시 로드
@@ -496,9 +569,21 @@ const syncProfile = async () => {
   }
 }
 
+// 라우트 파라미터 변경 감지
+watch(
+  () => route.params.solvedAcId,
+  (newSolvedAcId, oldSolvedAcId) => {
+    if (newSolvedAcId !== oldSolvedAcId) {
+      // 파라미터가 변경되면 프로필 다시 로드
+      loadProfile()
+    }
+  },
+)
+
 // 컴포넌트 마운트 시 실행
 onMounted(async () => {
   await authStore.initialize()
+  checkLoginStatus() // 로그인 상태 확인
   await loadProfile()
 
   // 스크롤 이벤트 리스너 등록
@@ -673,17 +758,55 @@ onUnmounted(() => {
   grid-template-areas: 'profile-card recent-problems';
 }
 
-/* 프로필 카드 */
-.profile-card {
+/* 프로필 카드 컨테이너 (sticky) */
+.profile-card-container {
   grid-area: profile-card;
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+}
+
+/* 기존 .profile-card 스타일 유지 */
+.profile-card {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 2rem;
   text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'profile-card'
+      'recent-problems';
+  }
+
+  .profile-card-container {
+    position: static; /* sticky 제거 */
+  }
+}
+.profile-card-container {
+  grid-area: profile-card;
+  position: sticky;
+  top: 2rem;
   height: fit-content;
 }
 
+/* 데스크톱에서만 sticky 적용 */
+@media (min-width: 1025px) {
+  .profile-card-container {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .profile-card-container {
+    position: static;
+  }
+}
 .profile-avatar {
   margin-bottom: 1.5rem;
 }
@@ -936,7 +1059,7 @@ onUnmounted(() => {
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
   text-align: center;
   min-width: 50px;
@@ -960,8 +1083,9 @@ onUnmounted(() => {
 }
 
 .problem-title {
+  font-weight: 600;
   color: #333;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .problem-meta {
@@ -986,14 +1110,14 @@ onUnmounted(() => {
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0rem;
   text-decoration: none;
   transition: background-color 0.2s;
 }
 
 .problem-link {
   color: var(--samsung-blue);
-  background: var(--samsung-blue-alpha);
+  /* background: var(--samsung-blue-alpha); */
 }
 
 .problem-link:hover {
@@ -1001,8 +1125,8 @@ onUnmounted(() => {
 }
 
 .submit-link {
-  color: #28a745;
-  background: rgba(40, 167, 69, 0.1);
+  color: #007e1d;
+  /* background: rgba(40, 167, 69, 0.1); */
 }
 
 .submit-link:hover {
@@ -1026,16 +1150,6 @@ onUnmounted(() => {
   font-size: 0.9rem;
   border-top: 1px solid #eee;
   margin-top: 1rem;
-}
-
-/* 반응형 디자인 */
-@media (max-width: 1024px) {
-  .profile-layout {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'profile-card'
-      'recent-problems';
-  }
 }
 
 @media (max-width: 768px) {
