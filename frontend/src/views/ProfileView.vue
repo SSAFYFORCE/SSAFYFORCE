@@ -11,11 +11,7 @@
         <!-- 왼쪽: 프로필 카드 -->
         <div class="profile-card">
           <div class="profile-avatar">
-            <img
-              :src="authStore.user?.profileImage || defaultProfileImage"
-              alt="프로필"
-              class="profile-image"
-            />
+            <img :src="profile.profileImage" :alt="profile.name" />
           </div>
 
           <div class="profile-main-info">
@@ -161,7 +157,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { memberApi } from '@/api/memberApi'
 import { solvedProblemApi } from '@/api/solvedProblemApi'
-import defaultProfileImage from '@/mockdata/default_profile.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
