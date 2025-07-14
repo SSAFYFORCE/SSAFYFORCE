@@ -31,7 +31,6 @@ public class SolvedProblemSyncBatch {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager platformTransactionManager;
-    private final SolvedProblemRepository solvedProblemRepository;
     private final MemberRepository memberRepository;
     private final SolvedProblemSyncService solvedProblemSyncService;
 
@@ -133,6 +132,8 @@ public class SolvedProblemSyncBatch {
                 if ("SUCCESS".equals(result.status())) {
                     successCount++;
                     totalSyncCount += result.syncCount();
+                    log.info("✅ 동기화 성공 - 회원: {} ({}), 동기화: {}건",
+                            result.memberName(), result.solvedAcId(), result.syncCount());
                 }else{
                     failCount++;
                     log.error("❌ 동기화 실패 - 회원: {} ({}), 오류: {}",
