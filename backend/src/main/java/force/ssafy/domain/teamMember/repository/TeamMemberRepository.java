@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class TeamMemberRepository {
@@ -40,6 +42,31 @@ public class TeamMemberRepository {
                 .getResultList();
     }
 
+    /**
+     * 각 팀의 실제 멤버 수를 조회하는 메서드
+     * @param teamIds 팀 ID 목록
+     * @return Map<팀ID, 멤버수>
+     */
+    public Map<Long, Long> findMemberCountsByTeamIds(List<Long> teamIds) {
+        if (teamIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Object[]> results = em.createQuery(
+                        "SELECT tm.team.id, COUNT(tm) " +
+                                "FROM TeamMember tm " +
+                                "WHERE tm.team.id IN :teamIds " +
+                                "GROUP BY tm.team.id", Object[].class)
+                .setParameter("teamIds", teamIds)
+                .getResultList();
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        result -> (Long) result[0],  // teamId
+                        result -> (Long) result[1]   // count
+                ));
+    }
+
     @Transactional
     public void save(TeamMember tm) {
         em.persist(tm);
@@ -54,6 +81,7 @@ public class TeamMemberRepository {
                 .getSingleResult();
         return cnt > 0;
     }
+
     public List<TeamMember> findByMember_Id(Long memberId) {
         return em.createQuery(
                         "SELECT tm FROM TeamMember tm JOIN FETCH tm.team WHERE tm.member.id = :memberId",
@@ -64,3 +92,4 @@ public class TeamMemberRepository {
     }
 
 }
+

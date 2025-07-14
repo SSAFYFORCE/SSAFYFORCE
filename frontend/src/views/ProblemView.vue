@@ -110,27 +110,6 @@
           </button>
         </div>
       </div>
-
-      <!-- 통계 섹션 -->
-      <div class="stats-section">
-        <h2>해결 현황</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-number">{{ solvedCount }}</div>
-            <div class="stat-label">해결한 문제</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">{{ unsolvedCount }}</div>
-            <div class="stat-label">미해결 문제</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">
-              {{ totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0 }}%
-            </div>
-            <div class="stat-label">해결률</div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -151,11 +130,6 @@ const currentPage = ref(0)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const pageSize = 15
-
-// 계산된 속성
-const solvedCount = computed(() => problems.value.filter((p) => p.isSolved).length)
-const unsolvedCount = computed(() => problems.value.filter((p) => !p.isSolved).length)
-const totalProblems = computed(() => totalElements.value)
 
 // 페이지네이션 표시 페이지 계산
 const displayPages = computed(() => {

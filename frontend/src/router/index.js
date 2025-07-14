@@ -27,6 +27,12 @@ const router = createRouter({
       component: () => import('../views/TeamCreateView.vue'),
     },
     {
+      path: '/teams/:teamId',
+      name: 'team-detail',
+      component: () => import('../views/TeamDetailView.vue'),
+      props: true,
+    },
+    {
       path: '/ranking',
       name: 'ranking',
       component: () => import('../views/RankingView.vue'),
@@ -44,6 +50,12 @@ const router = createRouter({
       meta: { requiresGuest: true },
     },
     {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/SettingsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/profile/:solvedAcId?',
       name: 'profile',
       component: () => import('../views/ProfileView.vue'),
@@ -53,12 +65,12 @@ const router = createRouter({
     {
       path: '/faq',
       name: 'FAQ',
-      component: FAQView
+      component: FAQView,
     },
     {
       path: '/terms',
       name: 'terms',
-      component: TermsView
+      component: TermsView,
     },
     {
       path: '/:pathMatch(.*)*',
