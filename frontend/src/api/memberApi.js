@@ -81,7 +81,6 @@ export const memberApi = {
  */
 export const uploadProfileImage = async (file) => {
   const formData = new FormData();
-  // Controller의 @RequestParam("file")에 맞춰 키를 'file'로 변경
   formData.append('file', file); 
 
   console.log('FormData to be sent:', file);
@@ -96,6 +95,21 @@ export const uploadProfileImage = async (file) => {
     return response;
   } catch (error) {
     console.error('이미지 업로드 API 호출 실패:', error.response || error);
+    throw error;
+  }
+};
+
+/**
+ * 프로필 이미지를 삭제합니다.
+ * @returns {Promise<Object>} - API 응답 객체
+ */
+export const deleteProfileImage = async () => {
+  try {
+    const response = await api.delete('/members/profile-image');
+    console.log('이미지 삭제 API 응답:', response);
+    return response;
+  } catch (error) {
+    console.error('이미지 삭제 API 호출 실패:', error.response || error);
     throw error;
   }
 };

@@ -49,6 +49,43 @@ public class AwsS3Service {
         return fileNameList;
     }
 
+    public String uploadSingleFile(MultipartFile file) {
+        validateImageFile(file);
+        
+        String fileName = createFileName(file.getOriginalFilename());
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(file.getSize());
+        objectMetadata.setContentType(file.getContentType());
+
+        try(InputStream inputStream = file.getInputStream()){
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+            
+            return getFileUrl(fileName);
+        } catch (IOException e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
+        }
+    }
+
+    private void validateImageFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어있습니다.");
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일 크기는 5MB를 초과할 수 없습니다.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 파일만 업로드 가능합니다.");
+        }
+    }
+
+    public String getFileUrl(String fileName) {
+        return amazonS3.getUrl(bucket, fileName).toString();
+    }
+
     // 파일명을 난수화하기 위해 UUID 를 활용하여 난수를 돌린다.
     public String createFileName(String fileName){
         return UUID.randomUUID().toString().concat(getFileExtension(fileName));
@@ -67,5 +104,23 @@ public class AwsS3Service {
     public void deleteFile(String fileName){
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
         System.out.println(bucket);
+    }
+
+    public void deleteFileByUrl(String fileUrl) {
+        try {
+            String fileName = extractFileNameFromUrl(fileUrl);
+            if (fileName != null && !fileName.isEmpty()) {
+                deleteFile(fileName);
+            }
+        } catch (Exception e) {
+            System.err.println("파일 삭제 실패: " + e.getMessage());
+        }
+    }
+
+    private String extractFileNameFromUrl(String fileUrl) {
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            return null;
+        }
+        return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
     }
 }

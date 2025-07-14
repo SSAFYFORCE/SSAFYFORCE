@@ -18,6 +18,10 @@
                 <font-awesome-icon :icon="['fas', 'camera']" />
                 <span>이미지 변경</span>
               </div>
+              <div v-if="profile?.profileImage" class="image-delete-overlay" @click="handleImageDelete">
+                <font-awesome-icon :icon="['fas', 'trash']" />
+                <span>이미지 삭제</span>
+              </div>
             </div>
             <input
               type="file"
@@ -171,7 +175,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { memberApi } from '@/api/memberApi'
 import { solvedProblemApi } from '@/api/solvedProblemApi'
-import { uploadProfileImage } from '@/api/memberApi';
+import { uploadProfileImage, deleteProfileImage } from '@/api/memberApi';
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -527,12 +531,18 @@ async function handleImageUpload(event) {
 
   try {
     console.log('프로필 이미지 업로드 시작...');
-    // 1. 파일을 백엔드로 전송. 백엔드가 저장과 DB 업데이트를 모두 처리.
-    await uploadProfileImage(file)
+    // 1. 파일을 백엔드로 전송
+    const response = await uploadProfileImage(file)
     console.log('이미지 업로드 및 프로필 업데이트 성공');
 
-    // 2. DB 업데이트가 반영된 최신 프로필 정보를 다시 불러옴
-    console.log('최신 프로필 정보 다시 불러오기...');
+    // 2. 응답에서 새로운 이미지 URL 가져오기
+    const newImageUrl = response.data.imageUrl;
+    console.log('새로운 이미지 URL:', newImageUrl);
+
+    // 3. AuthStore 업데이트 (Nav바 즉시 반영)
+    authStore.updateProfileImage(newImageUrl);
+
+    // 4. 로컬 프로필 정보도 업데이트
     await loadProfile(); 
     console.log('다시 불러온 후의 프로필 정보:', profile.value);
 
@@ -549,15 +559,38 @@ async function handleImageUpload(event) {
   }
 }
 
-async function deleteImage() {
-  // 이미지 삭제 로직 구현
-  // 현재는 이미지 업로드 기능만 있으므로, 삭제는 미구현
-  alert('이미지 삭제 기능은 현재 구현되지 않았습니다.');
+async function handleImageDelete() {
+  if (!confirm('프로필 이미지를 삭제하시겠습니까?')) {
+    return;
+  }
+
+  try {
+    console.log('프로필 이미지 삭제 시작...');
+    await deleteProfileImage();
+    console.log('이미지 삭제 성공');
+
+    // AuthStore 업데이트 (Nav바 즉시 반영)
+    authStore.updateProfileImage(null);
+
+    // 최신 프로필 정보 다시 불러오기
+    await loadProfile();
+    alert('프로필 이미지가 성공적으로 삭제되었습니다.');
+
+  } catch (error) {
+    console.error('이미지 삭제 중 에러 발생:', error);
+    if (error.response) {
+      console.error('에러 응답 데이터:', error.response.data);
+      alert(`이미지 삭제 실패: ${error.response.data.message || '서버 오류'}`);
+    } else {
+      alert('이미지 삭제에 실패했습니다.');
+    }
+  }
 }
 
 // 템플릿의 img 태그와 직접 연결되는 computed 속성 추가
 const displayProfileImage = computed(() => {
-  return profile.value?.profileImageUrl || '/src/mockdata/default_profile.png';
+  // 백엔드가 보내주는 DTO의 필드명인 'profileImage'를 사용하도록 수정합니다.
+  return profile.value?.profileImage || '/src/mockdata/default_profile.png';
 });
 </script>
 
@@ -1146,20 +1179,33 @@ const displayProfileImage = computed(() => {
   object-fit: cover;
 }
 
-.image-upload-overlay {
+.image-upload-overlay, .image-delete-overlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   background: rgba(0, 0, 0, 0.6);
   color: white;
   padding: 10px;
   text-align: center;
   opacity: 0;
   transition: opacity 0.3s;
+  cursor: pointer;
+  font-size: 0.8rem;
 }
 
-.profile-image-wrapper:hover .image-upload-overlay {
+.image-upload-overlay {
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.image-delete-overlay {
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(220, 53, 69, 0.8);
+}
+
+.profile-image-wrapper:hover .image-upload-overlay,
+.profile-image-wrapper:hover .image-delete-overlay {
   opacity: 1;
 }
 

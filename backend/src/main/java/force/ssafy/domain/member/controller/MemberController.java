@@ -113,15 +113,26 @@ public class MemberController {
 
     /**
      * 프로필 이미지 변경 API
-    */
+     */
     @PostMapping("/profile-image")
     public ResponseEntity<ProfileImageResponse> uploadProfileImage(
             @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal UserDetails userDetails  // 인증 방식에 따라 수정 필요
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // UserDetails에서 solvedAcId를 가져오는 방식으로 수정 필요
-        String solvedAcId = userDetails.getUsername();  // 실제 구현에서는 적절한 방식으로 solvedAcId를 가져와야 함
+        String solvedAcId = userDetails.getUsername();
         String imageUrl = memberService.saveProfileImage(file, solvedAcId);
         return ResponseEntity.ok(new ProfileImageResponse(imageUrl));
+    }
+
+    /**
+     * 프로필 이미지 삭제 API
+     */
+    @DeleteMapping("/profile-image")
+    public ResponseEntity<Void> deleteProfileImage(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        String solvedAcId = userDetails.getUsername();
+        memberService.deleteProfileImage(solvedAcId);
+        return ResponseEntity.ok().build();
     }
 }
