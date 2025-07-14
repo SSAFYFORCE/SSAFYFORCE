@@ -13,5 +13,5 @@ public class MemberUpdateRequest {
     @Size(max = 30, message = "이름은 30자 이하로 입력해주세요.")
     private String name;
 
-    private String profileImage;
+    private String profileImageUrl;
 }

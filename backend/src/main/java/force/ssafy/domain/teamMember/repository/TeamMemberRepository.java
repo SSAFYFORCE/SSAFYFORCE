@@ -17,7 +17,7 @@ public class TeamMemberRepository {
 
     public List<TeamMemberDto> findTeamMemberDtoByTeamId(Long teamId) {
         return em.createQuery(
-                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImage) " +
+                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImageUrl) " +
                                 "FROM TeamMember tm " +
                                 "JOIN tm.member m " +
                                 "WHERE tm.team.id = :teamId",
@@ -29,7 +29,7 @@ public class TeamMemberRepository {
 
     public List<TeamMemberDto> findPreviewMemberByTeamId(Long teamId) {
         return em.createQuery(
-                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImage) " +
+                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImageUrl) " +
                                 "FROM TeamMember tm " +
                                 "JOIN tm.member m " +
                                 "WHERE tm.team.id = :teamId " +

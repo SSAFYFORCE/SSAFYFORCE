@@ -106,7 +106,7 @@ public class MemberService implements UserDetailsService {
 
         member.updateProfile(
                 updateDto.getName(),
-                updateDto.getProfileImage()
+                updateDto.getProfileImageUrl()
         );
 
         //memberRepository.save(member);
