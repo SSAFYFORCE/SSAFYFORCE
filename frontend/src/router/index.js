@@ -1,5 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHashHistory } from 'vue-router'
+import FAQView from '@/views/FAQView.vue'
+import TermsView from '../views/TermsView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -26,6 +28,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/teams/:teamId',
+      name: 'team-detail',
+      component: () => import('../views/TeamDetailView.vue'),
+      props: true,
+    },
+    {
       path: '/ranking',
       name: 'ranking',
       component: () => import('../views/RankingView.vue'),
@@ -43,10 +51,27 @@ const router = createRouter({
       meta: { requiresGuest: true },
     },
     {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('@/views/ProfileView.vue'),
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/SettingsView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile/:solvedAcId?',
+      name: 'profile',
+      component: () => import('../views/ProfileView.vue'),
+      // 로그인 여부와 관계없이 프로필 조회 가능하도록 변경
+      meta: { requiresAuth: false },
+    },
+    {
+      path: '/faq',
+      name: 'FAQ',
+      component: FAQView,
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: TermsView,
     },
     {
       path: '/:pathMatch(.*)*',

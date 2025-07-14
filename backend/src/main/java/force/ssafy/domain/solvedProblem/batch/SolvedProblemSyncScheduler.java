@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -29,7 +28,7 @@ public class SolvedProblemSyncScheduler {
      */
     @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Seoul")
     public void runDailySyncJob(){
-        LocalDate startTime = LocalDate.now();
+        LocalDateTime startTime = LocalDateTime.now();
         String formattedTime = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         try{

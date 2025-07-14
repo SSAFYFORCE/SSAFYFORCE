@@ -10,7 +10,9 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref(null)
 
   // 계산된 속성
-  const isLoggedIn = computed(() => !!user.value)
+  const isLoggedIn = computed(() => {
+    return !!user.value && !!localStorage.getItem('accessToken')
+  })
 
   // 회원가입 관련 함수들
   const checkNickname = async (solvedAcId) => {
@@ -59,54 +61,46 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      console.log('로그인 요청:', credentials)
       const response = await authApi.signIn(credentials)
-      console.log('로그인 응답:', response)
 
-      if (response?.data?.accessToken) {
-        // 토큰 저장
-        localStorage.setItem('accessToken', response.data.accessToken)
-        if (response.data.refreshToken) {
-          localStorage.setItem('refreshToken', response.data.refreshToken)
-        }
-
-        // 사용자 정보 가져오기
-        try {
-          // 토큰 설정 후 잠시 대기
-          await new Promise((resolve) => setTimeout(resolve, 100))
-
-          const userResponse = await memberApi.getMyProfile()
-          console.log('사용자 정보 조회 응답:', userResponse)
-
-          if (userResponse?.data) {
-            user.value = {
-              ...userResponse.data,
-              solvedAcId: credentials.solvedAcId,
-              isAuthenticated: true,
-            }
-            return user.value
-          } else {
-            throw new Error('사용자 정보가 없습니다.')
-          }
-        } catch (profileError) {
-          console.error('사용자 정보 조회 실패:', profileError)
-          // 기본 사용자 정보로 설정
-          user.value = {
-            solvedAcId: credentials.solvedAcId,
-            isAuthenticated: true,
-          }
-          return user.value
-        }
+      if (!response?.data?.accessToken) {
+        throw new Error('로그인 응답에 토큰이 없습니다.')
       }
 
-      throw new Error('로그인 응답에 토큰이 없습니다.')
+      // 토큰 저장
+      localStorage.setItem('accessToken', response.data.accessToken)
+      if (response.data.refreshToken) {
+        localStorage.setItem('refreshToken', response.data.refreshToken)
+      }
+
+      // 사용자 정보 가져오기
+      try {
+        const userResponse = await memberApi.getMyProfile()
+        
+        if (!userResponse?.data) {
+          throw new Error('사용자 정보가 없습니다.')
+        }
+
+        user.value = {
+          ...userResponse.data,
+          solvedAcId: credentials.solvedAcId,
+          isAuthenticated: true,
+        }
+        return true // 로그인 성공
+      } catch (profileError) {
+        console.error('사용자 정보 조회 실패:', profileError)
+        user.value = null
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        throw new Error('사용자 정보를 가져오는데 실패했습니다.')
+      }
     } catch (err) {
       console.error('로그인 실패:', err)
       error.value = err.message || '로그인에 실패했습니다.'
       user.value = null
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
-      throw err
+      return false // 로그인 실패
     } finally {
       isLoading.value = false
     }
@@ -133,24 +127,29 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 초기화 (앱 시작 시 호출)
   const initialize = async () => {
-    if (localStorage.getItem('accessToken')) {
-      try {
-        const response = await memberApi.getMyProfile()
-        console.log('사용자 정보 초기화 응답:', response)
-        if (response?.data) {
-          user.value = {
-            ...response.data,
-            isAuthenticated: true,
-          }
-        } else {
-          throw new Error('사용자 정보가 없습니다.')
+    const token = localStorage.getItem('accessToken')
+    if (!token) {
+      user.value = null
+      return
+    }
+
+    try {
+      const response = await memberApi.getMyProfile()
+      console.log('사용자 정보 초기화 응답:', response)
+      
+      if (response?.data) {
+        user.value = {
+          ...response.data,
+          isAuthenticated: true,
         }
-      } catch (error) {
-        console.error('사용자 정보 초기화 실패:', error)
-        user.value = null
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
+      } else {
+        throw new Error('사용자 정보가 없습니다.')
       }
+    } catch (error) {
+      console.error('사용자 정보 초기화 실패:', error)
+      user.value = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
     }
   }
 

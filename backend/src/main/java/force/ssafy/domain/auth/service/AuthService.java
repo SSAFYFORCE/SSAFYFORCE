@@ -64,7 +64,7 @@ public class AuthService {
                 .name(signUpDto.getName())
                 .encryptionKey(encryptionKey)
                 .solvedAcId(signUpDto.getSolvedAcId())
-                .lastProblemSyncTime(LocalDateTime.now())
+                .lastProblemSyncTime(LocalDateTime.of(2010, 3, 19, 0, 0, 0))
                 .build();
 
         member.verify();

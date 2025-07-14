@@ -7,7 +7,7 @@
         <p>함께 성장할 팀을 찾아보세요</p>
       </div>
 
-      <!-- 검색 및 필터 섹션 (필요 시 유지) -->
+      <!-- 검색 및 필터 섹션 -->
       <div class="search-filter-section">
         <div class="search-container">
           <input
@@ -36,20 +36,35 @@
             class="team-card"
             :class="{ joined: team.isJoined }"
           >
-            <div class="team-header">
-              <h3 class="team-name">{{ team.name }}</h3>
+            <!-- 팀 카드 헤더 (클릭 가능) -->
+            <div class="team-header" @click="goToTeamDetail(team.id)">
+              <div class="team-avatar">
+                <img
+                  :src="team.profileImage || defaultProfileImage"
+                  :alt="team.name"
+                  class="team-image"
+                />
+              </div>
+              <div class="team-basic-info">
+                <h3 class="team-name">{{ team.name }}</h3>
+                <p class="team-description">{{ team.description }}</p>
+              </div>
             </div>
 
-            <p class="team-description">{{ team.description }}</p>
-
-            <div class="team-stats">
+            <!-- 팀 통계 정보 (클릭 가능) -->
+            <div class="team-stats" @click="goToTeamDetail(team.id)">
               <div class="stat-item">
                 <span class="stat-label">멤버</span>
                 <span class="stat-value">{{ team.memberCount }}명</span>
               </div>
+              <div class="stat-item">
+                <span class="stat-label">생성일</span>
+                <span class="stat-value">{{ formatDate(team.createdAt) }}</span>
+              </div>
             </div>
 
-            <div class="team-members-preview">
+            <!-- 팀 멤버 미리보기 (클릭 가능) -->
+            <div class="team-members-preview" @click="goToTeamDetail(team.id)">
               <h4>멤버 미리보기</h4>
               <div class="members-list">
                 <div
@@ -57,18 +72,32 @@
                   :key="member.id"
                   class="member-item"
                 >
+                  <img
+                    :src="member.profileImage || defaultProfileImage"
+                    :alt="member.name"
+                    class="member-avatar"
+                  />
                   <span class="member-name">{{ member.nickname }}</span>
                 </div>
                 <div v-if="team.teamMembers.length > 3" class="more-members">
                   +{{ team.teamMembers.length - 3 }}명 더
                 </div>
+                <div v-if="team.teamMembers.length === 0" class="no-members-preview">
+                  아직 멤버가 없습니다
+                </div>
               </div>
             </div>
 
+            <!-- 팀 액션 버튼들 (클릭 이벤트 전파 방지) -->
             <div class="team-actions">
+              <button @click.stop="goToTeamDetail(team.id)" class="btn btn-outline">
+                <font-awesome-icon :icon="['fas', 'eye']" />
+                상세보기
+              </button>
+
               <button
                 v-if="!team.isJoined"
-                @click="handleJoinTeam(team)"
+                @click.stop="handleJoinTeam(team)"
                 :disabled="joiningTeamId === team.id"
                 class="btn btn-primary"
               >
@@ -76,12 +105,20 @@
                   <font-awesome-icon :icon="['fas', 'spinner']" spin />
                   가입 중...
                 </template>
-                <template v-else>팀 가입하기</template>
+                <template v-else>
+                  <font-awesome-icon :icon="['fas', 'plus']" />
+                  팀 가입
+                </template>
               </button>
-              <span v-else class="joined-badge">✓ 가입된 팀</span>
+
+              <span v-else class="joined-badge">
+                <font-awesome-icon :icon="['fas', 'check-circle']" />
+                가입된 팀
+              </span>
             </div>
 
-            <div class="team-meta">
+            <!-- 팀 메타 정보 -->
+            <div class="team-meta" @click="goToTeamDetail(team.id)">
               <span class="created-date">{{ formatDate(team.createdAt) }} 생성</span>
             </div>
           </div>
@@ -103,6 +140,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { teamApi } from '@/api/teamApi'
 import { useAuthStore } from '@/stores/auth'
+import defaultProfileImage from '@/mockdata/default_profile.png'
 
 const teams = ref([])
 const loading = ref(true)
@@ -128,7 +166,10 @@ const loadTeams = async () => {
   loading.value = true
   try {
     const res = await teamApi.fetchTeams()
-    teams.value = res.data.teams
+    // 백엔드 API 응답 구조에 맞게 수정
+    const teamsData = res.data.teams || []
+
+    teams.value = teamsData
       .filter((t) => t.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
       .map((t) => ({
         id: t.teamId,
@@ -136,7 +177,8 @@ const loadTeams = async () => {
         description: t.description,
         memberCount: t.memberCount,
         createdAt: t.createdAt,
-        teamMembers: t.teamMembers,
+        teamMembers: t.teamMembers || [],
+        profileImage: t.profileImage,
         isJoined: false, // 필요시 로직 수정
       }))
   } catch (error) {
@@ -152,12 +194,17 @@ const applyFilters = () => {
   loadTeams()
 }
 
+// 팀 상세 페이지로 이동
+const goToTeamDetail = (teamId) => {
+  router.push(`/teams/${teamId}`)
+}
+
 // 팀 가입 처리
 const handleJoinTeam = async (team) => {
   // 1) 로그인 여부 확인
   if (!auth.isLoggedIn) {
     // 로그인 되어 있지 않으면 로그인 페이지로 리다이렉트
-    router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
+    router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
     return
   }
 
@@ -238,38 +285,6 @@ onMounted(async () => {
   box-shadow: 0 0 0 2px var(--samsung-blue-alpha);
 }
 
-.filter-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.filter-select {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-  font-size: 0.9rem;
-  min-width: 150px;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: var(--samsung-blue);
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.checkbox-container input {
-  margin-right: 0.5rem;
-}
-
 /* 팀 목록 */
 .teams-section {
   margin-bottom: 3rem;
@@ -300,12 +315,12 @@ onMounted(async () => {
 .team-card {
   background: white;
   border-radius: 8px;
-  padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
   border-left: 4px solid transparent;
+  overflow: hidden;
 }
 
 .team-card:hover {
@@ -318,37 +333,67 @@ onMounted(async () => {
   background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, white 100%);
 }
 
+/* 팀 헤더 */
 .team-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.team-header:hover {
+  background-color: #f8f9fa;
+}
+
+.team-avatar {
+  flex-shrink: 0;
+}
+
+.team-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #eee;
+}
+
+.team-basic-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .team-name {
   font-size: 1.3rem;
   color: #333;
-  margin: 0;
-}
-
-.team-tier {
+  margin: 0 0 0.5rem 0;
   font-weight: 600;
-  font-size: 0.9rem;
 }
 
 .team-description {
   color: #666;
-  margin-bottom: 1rem;
+  margin: 0;
   line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
+/* 팀 통계 */
 .team-stats {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  padding: 1rem;
+  justify-content: space-around;
+  padding: 1rem 1.5rem;
   background: #f8f9fa;
-  border-radius: 6px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.team-stats:hover {
+  background-color: #e9ecef;
 }
 
 .stat-item {
@@ -368,85 +413,83 @@ onMounted(async () => {
   color: var(--samsung-blue);
 }
 
-.team-tags {
-  margin-bottom: 1rem;
-}
-
-.team-tag {
-  display: inline-block;
-  background: #e9ecef;
-  color: #495057;
-  padding: 0.25rem 0.5rem;
-  margin: 0.125rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  border: 1px solid #dee2e6;
-}
-
+/* 팀 멤버 미리보기 */
 .team-members-preview {
-  margin-bottom: 1.5rem;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.team-members-preview:hover {
+  background-color: #f8f9fa;
 }
 
 .team-members-preview h4 {
   font-size: 1rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   color: #333;
 }
 
 .members-list {
-  background: #f8f9fa;
-  padding: 0.75rem;
-  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .member-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
 }
 
-.member-item:last-child {
-  margin-bottom: 0;
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #eee;
 }
 
 .member-name {
   font-weight: 500;
-  flex: 1;
+  font-size: 0.9rem;
+  color: #333;
 }
 
-.member-tier {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.leader-badge {
-  font-size: 0.8rem;
-}
-
-.more-members {
+.more-members,
+.no-members-preview {
   color: #666;
   font-size: 0.9rem;
   text-align: center;
-  padding-top: 0.5rem;
-  border-top: 1px solid #e9ecef;
+  padding: 0.5rem;
+  background-color: #f1f3f5;
+  border-radius: 4px;
+  margin-top: 0.5rem;
 }
 
+/* 팀 액션 */
 .team-actions {
-  margin-bottom: 1rem;
-  text-align: center;
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  border-top: 1px solid #eee;
 }
 
 .btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
   border-radius: 4px;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s;
   border: none;
   cursor: pointer;
-  position: relative;
+  font-size: 0.9rem;
+  flex: 1;
+  justify-content: center;
 }
 
 .btn:disabled {
@@ -464,6 +507,16 @@ onMounted(async () => {
   transform: translateY(-1px);
 }
 
+.btn-outline {
+  background-color: transparent;
+  color: var(--samsung-blue);
+  border: 1px solid var(--samsung-blue);
+}
+
+.btn-outline:hover {
+  background-color: var(--samsung-blue-alpha);
+}
+
 .btn-secondary {
   background-color: #f8f9fa;
   color: #333;
@@ -477,18 +530,30 @@ onMounted(async () => {
 .joined-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
   background: #d4edda;
   color: #155724;
   border-radius: 4px;
   font-weight: 500;
   font-size: 0.9rem;
+  flex: 1;
+  justify-content: center;
 }
 
+/* 팀 메타 정보 */
 .team-meta {
+  padding: 0.75rem 1.5rem;
   text-align: center;
   color: #666;
   font-size: 0.8rem;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.team-meta:hover {
+  background-color: #f1f3f5;
 }
 
 .create-team-section {
@@ -498,22 +563,25 @@ onMounted(async () => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  .filter-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-select {
-    min-width: 100%;
-  }
-
   .teams-grid {
     grid-template-columns: 1fr;
   }
 
+  .team-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
   .team-stats {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .team-actions {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }
 </style>

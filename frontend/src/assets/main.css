@@ -34,33 +34,95 @@ button {
   font-family: inherit;
 }
 
-/* 티어 색상 */
+/* CSS 변수로 색상 정의 */
+:root {
+  --samsung-blue: #1428a0;
+  --samsung-blue-dark: #0f3a7c;
+  --samsung-blue-light: #1e5bc6;
+  --samsung-blue-alpha: rgba(20, 40, 160, 0.1);
+
+  /* 티어 색상 변수 */
+  --tier-ruby: #e91e63;
+  --tier-diamond: #2196f3;
+  --tier-platinum: #00bcd4;
+  --tier-gold: #eeb301;
+  --tier-silver: #838383;
+  --tier-bronze: #8d6e63;
+  --tier-unrated: #757575;
+
+  /* 백그라운드용 티어 색상 (좀 더 진한 색상) */
+  --tier-ruby-bg: #ffb2cf;
+  --tier-diamond-bg: #b8cbff;
+  --tier-platinum-bg: #cefded;
+  --tier-gold-bg: #fff0c0;
+  --tier-silver-bg: #ebebeb;
+  --tier-bronze-bg: #ebe0d5;
+  --tier-unrated-bg: #e4e4e4;
+}
+
+/* 티어 색상 클래스 */
 .tier-ruby {
-  color: #E91E63;
+  color: var(--tier-ruby);
 }
 
 .tier-diamond {
-  color: #2196F3;
+  color: var(--tier-diamond);
 }
 
 .tier-platinum {
-  color: #00BCD4;
+  color: var(--tier-platinum);
 }
 
 .tier-gold {
-  color: #FFC107;
+  color: var(--tier-gold);
 }
 
 .tier-silver {
-  color: #9E9E9E;
+  color: var(--tier-silver);
 }
 
 .tier-bronze {
-  color: #8D6E63;
+  color: var(--tier-bronze);
 }
 
 .tier-unrated {
-  color: #757575;
+  color: var(--tier-unrated);
+}
+
+/* 티어 배경 색상 클래스 */
+.tier-ruby-bg {
+  background-color: var(--tier-ruby-bg);
+  color: white;
+}
+
+.tier-diamond-bg {
+  background-color: var(--tier-diamond-bg);
+  color: white;
+}
+
+.tier-platinum-bg {
+  background-color: var(--tier-platinum-bg);
+  color: white;
+}
+
+.tier-gold-bg {
+  background-color: var(--tier-gold-bg);
+  color: white;
+}
+
+.tier-silver-bg {
+  background-color: var(--tier-silver-bg);
+  color: white;
+}
+
+.tier-bronze-bg {
+  background-color: var(--tier-bronze-bg);
+  color: white;
+}
+
+.tier-unrated-bg {
+  background-color: var(--tier-unrated-bg);
+  color: white;
 }
 
 /* 공통 컨테이너 */
@@ -97,14 +159,6 @@ button {
 
 .mb-5 {
   margin-bottom: 4rem;
-}
-
-/* CSS 변수로 삼성 블루 컬러 정의 */
-:root {
-  --samsung-blue: #1428A0;
-  --samsung-blue-dark: #0F3A7C;
-  --samsung-blue-light: #1E5BC6;
-  --samsung-blue-alpha: rgba(20, 40, 160, 0.1);
 }
 
 /* 버튼 스타일 */

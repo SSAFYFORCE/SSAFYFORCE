@@ -20,23 +20,19 @@
       <div class="footer-section">
         <h3>고객 지원</h3>
         <ul>
-          <li><a href="#">자주 묻는 질문</a></li>
-          <li><a href="#">문의하기</a></li>
-          <li><a href="#">이용약관</a></li>
-          <li><a href="#">개인정보 처리방침</a></li>
+          <li><router-link to="/faq">자주 묻는 질문</router-link></li>
+          <li><router-link to="/terms">이용약관</router-link></li>
+          <li><a href="https://forms.gle/6ZwK4FQjzZVR9D896" target="_blank" rel="noopener noreferrer">문의하기</a></li>
         </ul>
       </div>
 
       <div class="footer-section">
         <h3>소셜 미디어</h3>
         <div class="social-icons">
-          <a href="#" aria-label="Github">
+          <a href="https://github.com/SSAFYFORCE/SSAFYFORCE" target="_blank" rel="noopener noreferrer" aria-label="Github">
             <font-awesome-icon :icon="['fab', 'github']" />
           </a>
-          <a href="#" aria-label="Twitter">
-            <font-awesome-icon :icon="['fab', 'twitter']" />
-          </a>
-          <a href="#" aria-label="Discord">
+          <a href="https://discord.gg/bud2Ygtt" target="_blank" rel="noopener noreferrer" aria-label="Discord">
             <font-awesome-icon :icon="['fab', 'discord']" />
           </a>
         </div>
@@ -44,7 +40,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2025 알고리즘 플랫폼. All rights reserved.</p>
+      <p>&copy; 2025 SSAFY FORCE. All rights reserved.</p>
     </div>
   </footer>
 </template>

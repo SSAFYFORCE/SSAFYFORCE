@@ -31,11 +31,11 @@ export const memberApi = {
   // 회원 정보 수정
   updateProfile: (updateData) => api.patch('/members/me', updateData),
 
-  // 비밀번호 변경
+  // 비밀번호 변경 (로그인 후)
   changePassword: (passwordData) => api.patch('/members/password', passwordData),
 
-  // 비밀번호 재설정
-  resetPassword: (resetData) => api.post('/members/password/reset', resetData),
+  // 비밀번호 재설정 (로그인 전)
+  resetPassword: (passwordData) => api.post('/members/password/reset', passwordData),
 
   // 회원 탈퇴
   deleteMember: () => api.delete('/members/me'),

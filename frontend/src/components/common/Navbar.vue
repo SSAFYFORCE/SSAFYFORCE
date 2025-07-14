@@ -19,36 +19,49 @@
       <template v-if="authStore.isLoggedIn">
         <div class="profile-container" @click="toggleDropdown">
           <img
-            :src="authStore.user?.profileImage || '/profiles/default.png'"
+            :src="authStore.user?.profileImage || defaultProfileImage"
             alt="프로필"
             class="profile-image"
           />
           <div class="dropdown" v-show="showDropdown">
-            <router-link to="/profile">프로필</router-link>
-            <router-link to="/settings">설정</router-link>
-            <a href="#" @click.prevent="handleLogout">로그아웃</a>
+            <router-link :to="`/profile/${authStore.user?.solvedAcId}`" @click="closeDropdown">
+              프로필
+            </router-link>
+            <router-link to="/settings" @click="closeDropdown">설정</router-link>
+            <a href="#" @click.prevent="handlePasswordReset">비밀번호 재설정</a>
+            <a href="#" @click.prevent="handleDeleteAccount" class="danger">회원 탈퇴</a>
           </div>
         </div>
+        <a href="#" @click.prevent="handleLogout" class="login-button">로그아웃</a>
       </template>
       <template v-else>
         <router-link to="/login" class="login-button">로그인</router-link>
       </template>
     </div>
   </nav>
+  <PasswordResetModal :show="showPasswordResetModal" @close="showPasswordResetModal = false" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { memberApi } from '@/api/memberApi'
+import defaultProfileImage from '@/mockdata/default_profile.png'
+import PasswordResetModal from './PasswordResetModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const showPasswordResetModal = ref(false)
 
 const showDropdown = ref(false)
 
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value
+}
+
+const closeDropdown = () => {
+  showDropdown.value = false
 }
 
 const handleLogout = async () => {
@@ -58,6 +71,23 @@ const handleLogout = async () => {
     router.push('/')
   } catch (error) {
     console.error('로그아웃 중 오류 발생:', error)
+  }
+}
+
+const handlePasswordReset = () => {
+  showDropdown.value = false
+  showPasswordResetModal.value = true
+}
+
+const handleDeleteAccount = async () => {
+  if (confirm('정말로 회원 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+    try {
+      await memberApi.deleteMember()
+      await authStore.logout()
+      router.push('/')
+    } catch (error) {
+      console.error('회원 탈퇴 중 오류 발생:', error)
+    }
   }
 }
 
@@ -153,6 +183,7 @@ onUnmounted(() => {
 .navbar-right {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .login-button {
@@ -200,5 +231,13 @@ onUnmounted(() => {
 
 .dropdown a:hover {
   background-color: #f5f5f5;
+}
+
+.dropdown a.danger {
+  color: #dc3545;
+}
+
+.dropdown a.danger:hover {
+  background-color: #ffebee;
 }
 </style>
