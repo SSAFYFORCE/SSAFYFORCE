@@ -107,8 +107,8 @@ public class TeamService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원이 없습니다. id=" + memberId));
 
-        // 3) 생성자를 팀 멤버로 추가
-        TeamMember tm = TeamMember.create(member, team);
+        // 3) 생성자를 팀 멤버로 추가, 리더로 설정
+        TeamMember tm = TeamMember.create(member, team, MemberRole.LEADER);
         teamMemberRepository.save(tm);
     }
 
@@ -120,6 +120,8 @@ public class TeamService {
      */
     @Transactional
     public void joinTeam(Long memberId, Long teamId) {
+        log.info("joinTeam 실행");
+
         // 1) 팀 존재 확인
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 팀이 없습니다. id=" + teamId));
@@ -140,7 +142,7 @@ public class TeamService {
         // }
 
         // 5) TeamMember 엔티티 생성 및 저장
-        TeamMember tm = TeamMember.create(member, team);
+        TeamMember tm = TeamMember.create(member, team, MemberRole.MEMBER);
 
         teamMemberRepository.save(tm);
     }
@@ -151,6 +153,8 @@ public class TeamService {
      * @return MyTeamListResponse
      */
     public MyTeamListResponse findMyTeams(Long memberId) {
+        log.info("findMyTeams 실행");
+
         // 1. 내가 속한 모든 팀-멤버 관계를 조회
         List<TeamMember> myTeamMemberships = teamMemberRepository.findByMember_Id(memberId);
 
