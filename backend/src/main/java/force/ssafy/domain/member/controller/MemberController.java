@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -107,5 +109,30 @@ public class MemberController {
             @PathVariable String solvedAcId) {
         MemberTeamsResponse response = memberService.getMemberTeams(solvedAcId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 프로필 이미지 변경 API
+     */
+    @PostMapping("/profile-image")
+    public ResponseEntity<ProfileImageResponse> uploadProfileImage(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        String solvedAcId = userDetails.getUsername();
+        String imageUrl = memberService.saveProfileImage(file, solvedAcId);
+        return ResponseEntity.ok(new ProfileImageResponse(imageUrl));
+    }
+
+    /**
+     * 프로필 이미지 삭제 API
+     */
+    @DeleteMapping("/profile-image")
+    public ResponseEntity<Void> deleteProfileImage(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        String solvedAcId = userDetails.getUsername();
+        memberService.deleteProfileImage(solvedAcId);
+        return ResponseEntity.ok().build();
     }
 }

@@ -4,8 +4,10 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.entity.MemberRole;
 import force.ssafy.domain.member.repository.MemberRepository;
 import force.ssafy.domain.team.dto.request.TeamCreateRequest;
+import force.ssafy.domain.team.dto.response.MyTeamListResponse;
 import force.ssafy.domain.team.dto.response.TeamListResponse;
 import force.ssafy.domain.team.dto.response.TeamResponse;
+import force.ssafy.domain.team.dto.response.TeamSimpleResponse;
 import force.ssafy.domain.team.entity.Team;
 import force.ssafy.domain.team.repository.TeamRepository;
 import force.ssafy.domain.teamMember.dto.TeamMemberDto;
@@ -95,11 +97,19 @@ public class TeamService {
      * @param teamCreateRequest
      */
     @Transactional
-    public void save(TeamCreateRequest teamCreateRequest) {
+    public void save(TeamCreateRequest teamCreateRequest, Long memberId) {
         log.info("team save 호출");
 
         Team team = teamCreateRequest.toEntity();
         teamRepository.save(team);
+
+        // 2) 생성자 멤버 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원이 없습니다. id=" + memberId));
+
+        // 3) 생성자를 팀 멤버로 추가
+        TeamMember tm = TeamMember.create(member, team);
+        teamMemberRepository.save(tm);
     }
 
     /**
@@ -134,4 +144,23 @@ public class TeamService {
 
         teamMemberRepository.save(tm);
     }
+
+    /**
+     * 내가 가입한 팀 목록 조회
+     * @param memberId 현재 로그인한 사용자 ID
+     * @return MyTeamListResponse
+     */
+    public MyTeamListResponse findMyTeams(Long memberId) {
+        // 1. 내가 속한 모든 팀-멤버 관계를 조회
+        List<TeamMember> myTeamMemberships = teamMemberRepository.findByMember_Id(memberId);
+
+        // 2. 각 관계에서 팀 정보를 꺼내 DTO로 변환
+        List<TeamSimpleResponse> myTeams = myTeamMemberships.stream()
+                .map(TeamSimpleResponse::from)
+                .collect(Collectors.toList());
+
+        // 3. 최종 응답 형태로 포장해서 반환
+        return MyTeamListResponse.from(myTeams);
+    }
 }
+
