@@ -40,9 +40,19 @@ spring:
             force.ssafy.global.security: DEBUG
             org.springframework.security: DEBUG
 
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 10MB
+
 
 jwt:
     secret: backjoonTeamCompetitionApplicationSecretKey2023!@#$
     token:
         access-expiration-time: 3600000  # 1시간
         refresh-expiration-time: 1209600000  # 14일
+
+
+file:
+    upload:
+        directory: /path/to/upload/directory  # 실제 서버의 업로드 경로로 수정

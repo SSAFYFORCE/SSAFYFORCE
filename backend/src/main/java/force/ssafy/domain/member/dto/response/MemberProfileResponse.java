@@ -16,7 +16,7 @@ public class MemberProfileResponse {
 
     public static MemberProfileResponse from(Member member) {
         return builder()
-                .profileImage(member.getProfileImage())
+                .profileImage(member.getProfileImageUrl())
                 .name(member.getName())
                 .solvedAcId(member.getSolvedAcId())
                 .lastProblemSyncTime(member.getLastProblemSyncTime())

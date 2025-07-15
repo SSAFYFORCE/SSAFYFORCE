@@ -19,7 +19,7 @@ public class TeamMemberRepository {
 
     public List<TeamMemberDto> findTeamMemberDtoByTeamId(Long teamId) {
         return em.createQuery(
-                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImage) " +
+                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImageUrl) " +
                                 "FROM TeamMember tm " +
                                 "JOIN tm.member m " +
                                 "WHERE tm.team.id = :teamId",
@@ -31,7 +31,7 @@ public class TeamMemberRepository {
 
     public List<TeamMemberDto> findPreviewMemberByTeamId(Long teamId) {
         return em.createQuery(
-                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImage) " +
+                        "SELECT new force.ssafy.domain.teamMember.dto.TeamMemberDto(m.id, m.solvedAcId, m.name, m.profileImageUrl) " +
                                 "FROM TeamMember tm " +
                                 "JOIN tm.member m " +
                                 "WHERE tm.team.id = :teamId " +
@@ -81,4 +81,15 @@ public class TeamMemberRepository {
                 .getSingleResult();
         return cnt > 0;
     }
+
+    public List<TeamMember> findByMember_Id(Long memberId) {
+        return em.createQuery(
+                        "SELECT tm FROM TeamMember tm JOIN FETCH tm.team WHERE tm.member.id = :memberId",
+                        TeamMember.class
+                )
+                .setParameter("memberId", memberId)
+                .getResultList();
+    }
+
 }
+

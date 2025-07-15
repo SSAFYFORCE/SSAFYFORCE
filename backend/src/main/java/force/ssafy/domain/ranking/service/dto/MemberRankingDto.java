@@ -18,7 +18,7 @@ public record MemberRankingDto(
                 .memberId(member.getId())
                 .memberName(member.getName())
                 .solvedAcId(member.getSolvedAcId())
-                .profileImage(member.getProfileImage())
+                .profileImage(member.getProfileImageUrl())
                 .score(score)
                 .rank(rank)
                 .solvedCount(solvedCount)
