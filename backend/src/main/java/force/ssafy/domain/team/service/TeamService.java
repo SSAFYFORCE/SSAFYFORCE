@@ -95,11 +95,19 @@ public class TeamService {
      * @param teamCreateRequest
      */
     @Transactional
-    public void save(TeamCreateRequest teamCreateRequest) {
+    public void save(TeamCreateRequest teamCreateRequest, Long memberId) {
         log.info("team save 호출");
 
         Team team = teamCreateRequest.toEntity();
         teamRepository.save(team);
+
+        // 2) 생성자 멤버 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원이 없습니다. id=" + memberId));
+
+        // 3) 생성자를 팀 멤버로 추가
+        TeamMember tm = TeamMember.create(member, team);
+        teamMemberRepository.save(tm);
     }
 
     /**
