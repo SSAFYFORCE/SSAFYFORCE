@@ -3,16 +3,16 @@ package force.ssafy.domain.teamJoinRequest.entity;
 import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.team.entity.Team;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class TeamJoinRequest {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +26,6 @@ public class TeamJoinRequest {
     @JoinColumn(name = "requester_id", nullable = false)
     private Member requester;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leader_id", nullable = false)
-    private Member leader;   // 팀 생성자 or 현 리더
-
     @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)
     private JoinStatus status = JoinStatus.PENDING;
@@ -38,6 +34,13 @@ public class TeamJoinRequest {
     private LocalDateTime createdAt;
 
     private LocalDateTime decidedAt;
+
+    public static TeamJoinRequest joinRequest(Team team, Member member) {
+        return TeamJoinRequest.builder()
+                .team(team)
+                .requester(member)
+                .build();
+    }
 
     // ------- 비즈니스 메서드 -------
     public void approve() {
