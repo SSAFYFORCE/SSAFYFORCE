@@ -36,7 +36,7 @@ public class TeamJoinRequestController {
     public ResponseEntity<List<TeamJoinRequestDto>> list(
             @PathVariable Long teamId,
             @AuthenticationPrincipal CustomUserDetails user) {
-        return ResponseEntity.ok(service.getRequests(teamId, user.getMemberId()));
+        return ResponseEntity.ok(service.getRequestList(teamId, user.getMemberId()));
     }
 
     // 단건 조회
@@ -57,7 +57,7 @@ public class TeamJoinRequestController {
             @AuthenticationPrincipal CustomUserDetails user) {
 
         service.approve(teamId, reqId, user.getMemberId());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     // 거절
@@ -68,7 +68,7 @@ public class TeamJoinRequestController {
             @AuthenticationPrincipal CustomUserDetails user) {
 
         service.reject(teamId, reqId, user.getMemberId());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }
 

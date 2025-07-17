@@ -91,5 +91,24 @@ public class TeamMemberRepository {
                 .getResultList();
     }
 
+    /**
+     * 해당 팀의 해당 멤버를 조회, 없으면 null 값을 반환
+     * @param teamId 팀 id
+     * @param memberId 멤버 id
+     * @return TeamMember
+     */
+    public TeamMember findByTeamIdAndMemberId(Long teamId, Long memberId) {
+        return em.createQuery(
+                        "SELECT tm FROM TeamMember tm " +
+                                "JOIN FETCH tm.member " +
+                                "WHERE tm.team.id = :teamId AND tm.member.id = :memberId",
+                        TeamMember.class)
+                .setParameter("teamId", teamId)
+                .setParameter("memberId", memberId)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
 }
 
