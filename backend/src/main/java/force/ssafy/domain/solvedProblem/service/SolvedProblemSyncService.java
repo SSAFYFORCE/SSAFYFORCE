@@ -140,11 +140,10 @@ public class SolvedProblemSyncService {
 
             // 정상 응답인 경우 - 직접 배열로 반환
             if (jsonNode.isArray()) {
-                List<SolvedProblemDto> result = objectMapper.readValue(
+                return objectMapper.readValue(
                         jsonNode.toString(),
                         objectMapper.getTypeFactory().constructCollectionType(List.class, SolvedProblemDto.class)
                 );
-                return result;
             } else {
                 log.warn("예상하지 못한 응답 형태: {}", response);
                 return new ArrayList<>();
