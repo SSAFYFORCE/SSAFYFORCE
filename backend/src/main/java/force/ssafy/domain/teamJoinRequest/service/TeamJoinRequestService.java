@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -77,7 +78,7 @@ public class TeamJoinRequestService {
 
     @Transactional
     public void reject(Long teamId, Long reqId, Long memberId) {
-        log.info("approve 호출");
+        log.info("reject 호출");
 
         checkTeamLeader(teamId, memberId);
 
@@ -94,7 +95,9 @@ public class TeamJoinRequestService {
 
         List<TeamJoinRequest> requestList = teamJoinRequestRepository.findByTeam_IdAndStatus(teamId, JoinStatus.PENDING);
 
-        return null;
+        return requestList.stream()
+                .map(TeamJoinRequestDto::from)
+                .toList();
     }
 
     public TeamJoinRequestDto getRequest(Long teamId, Long reqId, Long memberId) {
@@ -103,7 +106,7 @@ public class TeamJoinRequestService {
         TeamJoinRequest request = teamJoinRequestRepository.findByTeam_IdAndRequester_IdAndStatus(teamId, reqId, JoinStatus.PENDING)
                 .orElseThrow(() -> new EntityNotFoundException("해당 요청이 없습니다. "));
 
-        return null;
+        return TeamJoinRequestDto.from(request);
     }
 
     private void checkTeamLeader(Long teamId, Long memberId) {

@@ -31,7 +31,12 @@ public class TeamJoinRequestController {
         return ResponseEntity.ok().build();
     }
 
-    // 팀별 요청 목록 (리더 전용)
+    /**
+     * 팀 가입 요청 목록 조회
+     * @param teamId
+     * @param user
+     * @return
+     */
     @GetMapping("/{teamId}/join-requests")
     public ResponseEntity<List<TeamJoinRequestDto>> list(
             @PathVariable Long teamId,
@@ -44,12 +49,17 @@ public class TeamJoinRequestController {
     public ResponseEntity<TeamJoinRequestDto> get(
             @PathVariable Long teamId,
             @PathVariable Long reqId,
-            @AuthenticationPrincipal CustomUserDetails user
-    ) {
+            @AuthenticationPrincipal CustomUserDetails user) {
         return ResponseEntity.ok(service.getRequest(teamId, reqId, user.getMemberId()));
     }
 
-    // 승인
+    /**
+     * 팀 가입 요청 승인
+     * @param teamId
+     * @param reqId
+     * @param user
+     * @return
+     */
     @PatchMapping("/{teamId}/join-requests/{reqId}/approve")
     public ResponseEntity<Void> approve(
             @PathVariable Long teamId,
@@ -60,7 +70,13 @@ public class TeamJoinRequestController {
         return ResponseEntity.ok().build();
     }
 
-    // 거절
+    /**
+     * 팀 가입 요청 거절
+     * @param teamId
+     * @param reqId
+     * @param user
+     * @return
+     */
     @PatchMapping("/{teamId}/join-requests/{reqId}/reject")
     public ResponseEntity<Void> reject(
             @PathVariable Long teamId,
