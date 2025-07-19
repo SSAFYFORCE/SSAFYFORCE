@@ -410,7 +410,8 @@ onUnmounted(() => {
 }
 
 .search-container {
-  display: flex;
+  display: none;
+  /* display: flex; */
   align-items: center;
   margin-left: 2rem;
   padding: 0.5rem 1rem;
