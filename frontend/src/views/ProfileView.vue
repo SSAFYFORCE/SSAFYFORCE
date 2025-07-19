@@ -727,6 +727,8 @@ async function handleImageDelete() {
   padding: 2rem;
   text-align: center;
   height: fit-content;
+  position: sticky;
+  top: 2rem;
 }
 
 .profile-avatar {
