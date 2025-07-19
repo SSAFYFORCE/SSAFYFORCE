@@ -33,6 +33,7 @@ import {
   faSync,
   faTrash,
   faExternalLinkAlt,
+  faCog,
 } from '@fortawesome/free-solid-svg-icons'
 import { faGithub, faTwitter, faDiscord, faGoogle } from '@fortawesome/free-brands-svg-icons'
 
@@ -62,6 +63,7 @@ library.add(
   faSync,
   faTrash,
   faExternalLinkAlt,
+  faCog,
   // Brand icons
   faGithub,
   faTwitter,

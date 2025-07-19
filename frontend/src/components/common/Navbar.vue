@@ -106,22 +106,24 @@
     </div>
     <div class="navbar-right">
       <template v-if="authStore.isLoggedIn">
-        <div class="profile-container" @click="toggleDropdown">
+        <div class="profile-container" @click="goToMyProfile">
           <img
             :src="authStore.user?.profileImage || defaultProfileImage"
             alt="프로필"
             class="profile-image"
+            title="내 프로필 보기"
           />
+        </div>
+        <div class="settings-container" @click="toggleDropdown">
+          <font-awesome-icon :icon="['fas', 'cog']" class="settings-icon" title="설정" />
           <div class="dropdown" v-show="showDropdown">
-            <router-link :to="`/profile/${authStore.user?.solvedAcId}`" @click="closeDropdown">
-              프로필
-            </router-link>
-            <router-link to="/settings" @click="closeDropdown">설정</router-link>
+            <!-- <router-link to="/settings" @click="closeDropdown">설정</router-link> -->
             <a href="#" @click.prevent="handlePasswordReset">비밀번호 재설정</a>
             <a href="#" @click.prevent="handleDeleteAccount" class="danger">회원 탈퇴</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" @click.prevent="handleLogout">로그아웃</a>
           </div>
         </div>
-        <a href="#" @click.prevent="handleLogout" class="login-button">로그아웃</a>
       </template>
       <template v-else>
         <router-link to="/login" class="login-button">로그인</router-link>
@@ -217,13 +219,14 @@ const mockTeams = [
     profileImage: null,
   },
 ]
+const goToMyProfile = () => {
+  if (authStore.user?.solvedAcId) {
+    router.push(`/profile/${authStore.user.solvedAcId}`)
+  }
+}
 
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value
-}
-
-const closeDropdown = () => {
-  showDropdown.value = false
 }
 
 const handleLogout = async () => {
@@ -329,10 +332,9 @@ const clearSearch = () => {
   searchInput.value?.blur()
 }
 
-// 클릭 이벤트를 감지하여 드롭다운 외부 클릭 시 드롭다운 닫기
 const handleClickOutside = (event) => {
-  const profileContainer = document.querySelector('.profile-container')
-  if (profileContainer && !profileContainer.contains(event.target)) {
+  const settingsContainer = document.querySelector('.settings-container')
+  if (settingsContainer && !settingsContainer.contains(event.target)) {
     showDropdown.value = false
   }
 
@@ -567,8 +569,15 @@ onUnmounted(() => {
 }
 
 .profile-container {
-  position: relative;
   cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.profile-container:hover {
+  background-color: rgba(20, 40, 160, 0.1);
+  transform: scale(1.05);
 }
 
 .profile-image {
@@ -576,28 +585,57 @@ onUnmounted(() => {
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
+}
+
+.settings-container {
+  display: flex;
+  position: relative;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.settings-container:hover {
+  background-color: rgba(20, 40, 160, 0.1);
+}
+
+.settings-icon {
+  width: 20px;
+  height: 20px;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.settings-container:hover .settings-icon {
+  color: var(--samsung-blue);
 }
 
 .dropdown {
   position: absolute;
-  top: 45px;
+  top: 100%;
   right: 0;
   background: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  width: 150px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  width: 180px;
   z-index: 10;
+  margin-top: 0.5rem;
+  overflow: hidden;
 }
 
 .dropdown a {
   display: block;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   text-decoration: none;
   color: #333;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
 }
 
 .dropdown a:hover {
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
 }
 
 .dropdown a.danger {
@@ -605,10 +643,15 @@ onUnmounted(() => {
 }
 
 .dropdown a.danger:hover {
-  background-color: #ffebee;
+  background-color: #fff5f5;
 }
 
-/* 반응형 디자인 */
+.dropdown-divider {
+  height: 1px;
+  background-color: #e9ecef;
+  margin: 0.5rem 0;
+}
+
 @media (max-width: 768px) {
   .search-container {
     margin-left: 1rem;
@@ -626,7 +669,7 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .search-container {
-    display: none; /* 모바일에서는 검색창 숨김 */
+    display: none;
   }
 }
 </style>
