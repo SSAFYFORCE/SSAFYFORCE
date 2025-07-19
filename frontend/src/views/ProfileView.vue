@@ -504,9 +504,7 @@ const parseTeamsData = (data) => {
     teams: (data.teams || []).map((team) => ({
       id: team.id,
       name: team.name || '팀 이름 없음',
-      profileImage:
-        team.profileImage ||
-        `https://via.placeholder.com/40x40/1428A0/ffffff?text=${team.name?.charAt(0) || 'T'}`,
+      profileImage: team.profileImage || DEFAULT_PROFILE_IMAGE,
     })),
   }
 }
