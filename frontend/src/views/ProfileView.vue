@@ -528,17 +528,18 @@ const syncProfile = async () => {
       throw new Error('사용자 정보를 찾을 수 없습니다.')
     }
 
-    // 사용자에게 시간이 오래 걸릴 수 있음을 알림
     const targetName = isOwnProfile.value ? '내' : `${profile.value.name}님의`
     syncResult.value = `${targetName} 프로필을 동기화 중입니다... 시간이 오래 걸릴 수 있습니다.`
     syncResultClass.value = 'info'
 
-    // 동기화 API 호출 (2분 타임아웃)
     const result = await solvedProblemApi.syncSolvedProblems(solvedAcId)
     const data = result.data
 
     syncResult.value = `${profile.value.name}님의 ${data.resultCount}개의 새로운 문제가 동기화되었습니다.`
     syncResultClass.value = 'success'
+
+    const profileResponse = await memberApi.getMemberProfile(solvedAcId)
+    profile.value = parseProfileData(profileResponse.data)
 
     // 해결한 문제 다시 로드
     solvedProblems.value = []
@@ -551,7 +552,6 @@ const syncProfile = async () => {
   } catch (error) {
     console.error('프로필 동기화 실패:', error)
 
-    // 타임아웃 에러인지 확인
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       syncResult.value = '동기화 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.'
     } else {
@@ -561,13 +561,13 @@ const syncProfile = async () => {
   } finally {
     isSyncing.value = false
 
-    // 5초 후 결과 메시지 숨기기 (좀 더 길게)
     setTimeout(() => {
       syncResult.value = ''
       syncResultClass.value = ''
     }, 5000)
   }
 }
+
 watch(
   () => route.params.solvedAcId,
   (newSolvedAcId, oldSolvedAcId) => {
