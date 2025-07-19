@@ -12,13 +12,14 @@ import force.ssafy.domain.solvedProblem.repository.SolvedProblemRepository;
 import force.ssafy.domain.solvedProblem.service.dto.CrawlRequestDto;
 import force.ssafy.domain.solvedProblem.service.dto.SolvedProblemDto;
 import force.ssafy.global.error.exception.EntityNotFoundException;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,19 +93,28 @@ public class SolvedProblemSyncService {
 
     private List<SolvedProblemDto> callLambdaFunction(Map<String, Object> request) {
         try {
-            WebClient webClient = WebClient.builder().baseUrl(lambdaUrl).build();
+            WebClient webClient = WebClient.builder()
+                    .baseUrl(lambdaUrl)
+                    .codecs(configurer ->
+                            configurer.defaultCodecs().maxInMemorySize(100 * 1024 * 1024)
+                    )
+                    .build();
 
             String response = webClient.post()
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(String.class)
+                    .timeout(Duration.ofMinutes(3))
+                    .doOnSubscribe(subscription -> log.info("요청 전송 완료, 응답 대기 중..."))
+                    .doOnNext(resp -> log.info("Lambda 응답 수신 완료 - 크기: {} bytes ({} KB)",
+                            resp.length(), resp.length() / 1024))
                     .block();
 
             // 응답 파싱 및 오류 처리
             return parseLambdaResponse(response);
 
         } catch (WebClientResponseException e) {
-            log.error("람다 함수 호출 실패 - HTTP 오류: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("람다 함수 호출 실패 - HTTP 오류코드: {}, 오류 내용: {}", e.getStatusCode(), e.getMessage());
             handleLambdaError(e);
             // handleLambdaError에서 예외를 던지므로 여기 도달하지 않음
             return new ArrayList<>();
@@ -167,8 +177,6 @@ public class SolvedProblemSyncService {
             }
         } catch (IllegalArgumentException ex) {
             throw ex;
-        } catch (RuntimeException ex) {
-            throw ex;
         } catch (Exception ex) {
             log.error("오류 응답 파싱 실패: {}", ex.getMessage());
         }
@@ -210,16 +218,14 @@ public class SolvedProblemSyncService {
             return 0;
         }
 
-        // 🎯 핵심 개선: 제출 시간 기준으로 정렬 (과거 → 최신 순)
-        // Lambda에서 최신→과거 순으로 오므로, 시간 기준으로 정렬하여 정확한 순서 보장
         List<SolvedProblemDto> sortedProblems = newSolvedProblems.stream()
                 .sorted(Comparator.comparing(SolvedProblemDto::solvedDate))
-                .collect(Collectors.toList());
+                .toList();
 
         log.info("데이터 정렬 완료: 총 {}개 문제를 시간순으로 정렬 ({} → {})",
                 sortedProblems.size(),
                 sortedProblems.isEmpty() ? "없음" : sortedProblems.get(0).solvedDate(),
-                sortedProblems.isEmpty() ? "없음" : sortedProblems.get(sortedProblems.size()-1).solvedDate());
+                sortedProblems.isEmpty() ? "없음" : sortedProblems.get(sortedProblems.size() - 1).solvedDate());
 
         int savedCount = 0;
         int errorCount = 0;
@@ -243,8 +249,6 @@ public class SolvedProblemSyncService {
                     continue;
                 }
 
-                // 🎯 정렬된 순서로 처리하므로 isFirstSolved가 정확함
-                // 현재 시점에서 해당 사용자가 이 문제를 이전에 해결했는지 확인
                 boolean previousSolved = solvedProblemRepository.existsByMemberAndProblem(member, problem);
 
                 SolvedProblem solvedProblem = SolvedProblem.builder()
@@ -266,7 +270,6 @@ public class SolvedProblemSyncService {
                 log.error("문제 처리 중 오류 발생 - submissionId: {}, problemNumber: {}, error: {}",
                         dto.submissionId(), dto.problemNumber(), e.getMessage());
                 errorCount++;
-                // 개별 문제 처리 실패는 전체 동기화를 중단시키지 않음
             }
         }
 
