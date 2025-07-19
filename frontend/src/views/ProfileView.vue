@@ -12,14 +12,14 @@
         <div class="profile-card">
           <div class="profile-image-section">
             <div class="profile-image-wrapper">
-              <!-- computed 속성을 사용하여 이미지 소스를 동적으로 바인딩 -->
               <img :src="profile.profileImage" alt="프로필 이미지" class="profile-image" />
-              <div class="image-upload-overlay" @click="triggerFileInput">
+
+              <div v-if="isOwnProfile" class="image-upload-overlay" @click="triggerFileInput">
                 <font-awesome-icon :icon="['fas', 'camera']" />
                 <span>이미지 변경</span>
               </div>
               <div
-                v-if="profile?.profileImage"
+                v-if="isOwnProfile && profile?.profileImage"
                 class="image-delete-overlay"
                 @click="handleImageDelete"
               >
@@ -28,6 +28,7 @@
               </div>
             </div>
             <input
+              v-if="isOwnProfile"
               type="file"
               ref="fileInput"
               @change="handleImageUpload"
@@ -1132,7 +1133,6 @@ async function handleImageDelete() {
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
-  cursor: pointer;
 }
 
 .profile-image {
@@ -1171,7 +1171,13 @@ async function handleImageDelete() {
 .profile-image-wrapper:hover .image-delete-overlay {
   opacity: 1;
 }
-
+.is-own-profile .profile-image-wrapper {
+  cursor: pointer;
+}
+.is-own-profile .profile-image-wrapper:hover .image-upload-overlay,
+.is-own-profile .profile-image-wrapper:hover .image-delete-overlay {
+  opacity: 1;
+}
 .hidden {
   display: none;
 }
