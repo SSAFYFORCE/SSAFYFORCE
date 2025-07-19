@@ -30,6 +30,9 @@ import {
   faHome,
   faArrowLeft,
   faLink,
+  faSync,
+  faTrash,
+  faExternalLinkAlt,
 } from '@fortawesome/free-solid-svg-icons'
 import { faGithub, faTwitter, faDiscord, faGoogle } from '@fortawesome/free-brands-svg-icons'
 
@@ -55,12 +58,15 @@ library.add(
   faBlog,
   faHome,
   faArrowLeft,
+  faLink,
+  faSync,
+  faTrash,
+  faExternalLinkAlt,
   // Brand icons
   faGithub,
   faTwitter,
   faDiscord,
   faGoogle,
-  faLink,
 )
 
 const app = createApp(App)

@@ -25,6 +25,7 @@ const router = createRouter({
       path: '/teams/create',
       name: 'team-create',
       component: () => import('../views/TeamCreateView.vue'),
+      meta: { requiresAuth: true },
     },
     {
       path: '/teams/:teamId',

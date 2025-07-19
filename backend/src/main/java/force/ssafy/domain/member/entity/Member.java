@@ -38,9 +38,6 @@ public class Member implements UserDetails {
     @Column(nullable = false, length = 30)
     private String name;
 
-    @Column(length = 200)
-    private String profileImage;
-
     @Column(nullable = false, length = 100)
     private String encryptionKey;
 
@@ -61,6 +58,13 @@ public class Member implements UserDetails {
     @Column(nullable = false,name = "last_problem_sync_time")
     private LocalDateTime lastProblemSyncTime;
 
+    @Column
+    private String profileImageUrl;
+
+    public void updateProfileImage(String imageUrl) {
+        this.profileImageUrl = imageUrl;
+    }
+
     @OneToMany(mappedBy = "member")
     private List<TeamMember> teamMembers = new ArrayList<>();
 
@@ -69,10 +73,9 @@ public class Member implements UserDetails {
 
     @Builder
     public Member( String password, String name,
-                  String profileImage, String encryptionKey, String solvedAcId, LocalDateTime lastProblemSyncTime) {
+                   String encryptionKey, String solvedAcId, LocalDateTime lastProblemSyncTime) {
         this.password = password;
         this.name = name;
-        this.profileImage = profileImage;
         this.encryptionKey = encryptionKey;
         this.solvedAcId = solvedAcId;
         this.lastProblemSyncTime = lastProblemSyncTime;
@@ -82,10 +85,10 @@ public class Member implements UserDetails {
         this.verified = true;
     }
 
-    public void updateProfile(String name, String profileImage) {
+    public void updateProfile(String name, String profileImageUrl) {
         this.name = name;
-        if (profileImage != null) {
-            this.profileImage = profileImage;
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
         }
     }
 

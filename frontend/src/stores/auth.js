@@ -153,6 +153,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // 프로필 정보 업데이트
+  const updateUserProfile = async () => {
+    if (!user.value) return
+    
+    try {
+      const response = await memberApi.getMyProfile()
+      if (response?.data) {
+        user.value = {
+          ...response.data,
+          solvedAcId: user.value.solvedAcId, // 기존 solvedAcId 유지
+          isAuthenticated: true,
+        }
+      }
+    } catch (error) {
+      console.error('프로필 정보 업데이트 실패:', error)
+    }
+  }
+
+  // 프로필 이미지만 업데이트
+  const updateProfileImage = (imageUrl) => {
+    if (user.value) {
+      user.value.profileImage = imageUrl
+    }
+  }
+
   return {
     // State
     user,
@@ -170,5 +195,7 @@ export const useAuthStore = defineStore('auth', () => {
     signUp,
     login,
     logout,
+    updateUserProfile,
+    updateProfileImage,
   }
 })

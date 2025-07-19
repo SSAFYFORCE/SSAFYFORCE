@@ -43,7 +43,7 @@ public class AuthController {
         MemberDto memberDto = MemberDto.builder()
                 .id(member.getId())
                 .name(member.getName())
-                .profileImage(member.getProfileImage())
+                .profileImage(member.getProfileImageUrl())
                 .createdAt(member.getCreatedAt())
                 .solvedAcId(member.getSolvedAcId())
                 .build();

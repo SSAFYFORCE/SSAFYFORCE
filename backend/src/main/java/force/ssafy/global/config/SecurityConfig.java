@@ -4,6 +4,7 @@ import force.ssafy.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -32,6 +33,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 팀 목록 조회는 허용, 나머지 생성 및 가입은 인증 필요
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/teams",
+                                "/api/v1/teams/*"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/teams",
+                                "/api/v1/teams/*/join"
+                        ).authenticated()
+
                         // 인증이 필요없는 공개 API 엔드포인트
                         .requestMatchers(
                                 "/api/v1/auth/sign-in",
