@@ -200,6 +200,7 @@ onUnmounted(() => {
 }
 
 .profile-container {
+  display: flex;
   position: relative;
   cursor: pointer;
 }
