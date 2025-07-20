@@ -33,17 +33,22 @@ public class TeamMember {
     @Enumerated(EnumType.STRING)    // 멤버 기본 역할은 팀원
     private MemberRole role = MemberRole.MEMBER;
 
-    public static TeamMember create(Member member, Team team) {
+    public static TeamMember create(Member member, Team team, MemberRole role) {
         TeamMember tm = TeamMember.builder()
                 .member(member)
                 .team(team)
                 .joinedAt(LocalDateTime.now())
-                .role(MemberRole.MEMBER)
+                .role(role)
                 .build();
 
         // 양방향 관계 동기화
         member.getTeamMembers().add(tm);
         team.getTeamMembers().add(tm);
         return tm;
+    }
+
+    public void changeRoleTo(MemberRole targetRole) {
+        if (this.role == targetRole) return; // idempotent
+        this.role = targetRole;
     }
 }
