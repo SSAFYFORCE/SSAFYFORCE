@@ -56,6 +56,12 @@ public class TeamJoinRequest {
         this.decidedAt = LocalDateTime.now();
     }
 
+    public void cancel() {
+        ensurePending();
+        this.status = JoinStatus.CANCEL;
+        this.decidedAt = LocalDateTime.now();
+    }
+
     private void ensurePending() {
         if (this.status != JoinStatus.PENDING)
             throw new IllegalStateException("이미 처리된 요청입니다.");

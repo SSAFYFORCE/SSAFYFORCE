@@ -86,5 +86,21 @@ public class TeamJoinRequestController {
         service.reject(teamId, reqId, user.getMemberId());
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 팀 가입 요청 취소 (요청자 본인만 가능)
+     * @param teamId
+     * @param user
+     * @return
+     */
+    @DeleteMapping("/{teamId}/join-requests/cancel")
+    public ResponseEntity<Void> cancel(
+            @PathVariable Long teamId,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        service.cancel(teamId, user.getMemberId());
+        return ResponseEntity.ok().build();
+    }
+
 }
 

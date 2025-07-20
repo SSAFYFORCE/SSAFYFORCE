@@ -88,6 +88,17 @@ public class TeamJoinRequestService {
         request.reject();
     }
 
+    @Transactional
+    public void cancel(Long teamId, Long memberId) {
+        log.info("cancel 호출");
+
+        TeamJoinRequest req = teamJoinRequestRepository
+                .findByTeam_IdAndRequester_IdAndStatus(teamId, memberId, JoinStatus.PENDING)
+                .orElseThrow(() -> new EntityNotFoundException("대기 중인 요청이 없습니다."));
+
+        req.cancel();
+    }
+
     public List<TeamJoinRequestDto> getRequestList(Long teamId, Long memberId) {
         log.info("getRequestList : 팀 가입 요청 다건 호출");
 
