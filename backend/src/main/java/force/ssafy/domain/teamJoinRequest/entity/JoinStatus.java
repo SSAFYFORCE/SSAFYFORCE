@@ -1,6 +1,6 @@
 package force.ssafy.domain.teamJoinRequest.entity;
 
 public enum JoinStatus {
-    PENDING, APPROVED, REJECTED
+    PENDING, APPROVED, REJECTED, NONE
 }
 

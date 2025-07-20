@@ -26,6 +26,7 @@ public class TeamJoinRequest {
     @JoinColumn(name = "requester_id", nullable = false)
     private Member requester;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(length = 10, nullable = false)
     private JoinStatus status = JoinStatus.PENDING;
