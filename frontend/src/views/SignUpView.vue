@@ -75,6 +75,9 @@
 
               <transition name="fade">
                 <div v-if="verificationCode" class="verification-code">
+                  <div class="image-container">
+                    <span class="image-caption">Solved.ac 프로필 이름 설정 예시</span>
+                  </div>
                   <div class="code-display">
                     <span>인증 코드:</span>
                     <code>{{ verificationCode }}</code>
@@ -102,10 +105,30 @@
                       </a>
                       페이지로 이동하세요.
                     </p>
-                    <p>3. name 또는 nameNative 필드에 인증코드를 붙여넣기 하세요.</p>
-                    <p>
-                      4. solved.ac에서 저장 후, 1분 정도 기다렸다가 인증 확인 버튼을 클릭하세요.
-                    </p>
+
+                    <img
+                      src="@/assets/images/솔브닥인증안내1.png"
+                      alt="인증 예시"
+                      class="guide-image"
+                    />
+                    <br />
+                    <p>3. "모국어로 작성" 또는 "영어로 작성" 필드에 인증코드를 붙여넣기 하세요.</p>
+
+                    <img
+                      src="@/assets/images/솔브닥인증안내2.png"
+                      alt="인증 예시"
+                      class="guide-image"
+                    />
+                    <br />
+                    <p>4. "프로필에 이름 표시"를 켜주세요.</p>
+
+                    <img
+                      src="@/assets/images/솔브닥인증안내3.png"
+                      alt="인증 예시"
+                      class="guide-image"
+                    />
+                    <br />
+                    <p>5. 저장 후, 인증 버튼을 클릭하세요.</p>
                   </div>
                 </div>
               </transition>
@@ -118,12 +141,20 @@
                 {{ isVerifying ? '확인 중...' : '인증 확인' }}
               </button>
             </div>
+
+            <!-- 인증 확인 버튼을 눌렀을 때만 표시되는 메시지 -->
+            <div
+              v-if="verificationMessage"
+              :class="['message-box', isCodeVerified ? 'success-message-box' : 'error-message-box']"
+            >
+              {{ verificationMessage }}
+            </div>
           </div>
 
           <!-- 3단계: 회원 정보 입력 -->
           <div v-if="currentStep === 2" class="step-content">
             <div class="form-group">
-              <label for="name">이름</label>
+              <label for="name">이름 (본명)</label>
               <input
                 id="name"
                 v-model="formData.name"
@@ -135,6 +166,7 @@
               <span v-if="errors.name" class="error-message">
                 {{ errors.name }}
               </span>
+              <span class="input-help">팀장이 팀 가입 요청을 확인할 때 사용됩니다</span>
             </div>
 
             <div class="form-group">
@@ -143,13 +175,14 @@
                 id="password"
                 v-model="formData.password"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="비밀번호를 입력하세요"
+                placeholder="8자 이상의 비밀번호를 입력하세요"
                 class="form-input"
                 :class="{ error: errors.password }"
               />
               <span v-if="errors.password" class="error-message">
                 {{ errors.password }}
               </span>
+              <span class="input-help">8자 이상 입력해주세요</span>
             </div>
 
             <div class="form-group">
@@ -175,9 +208,9 @@
             </div>
           </div>
 
-          <!-- 에러/성공 메시지 -->
+          <!-- 전역 에러 메시지 (3단계에서만 표시) -->
           <div
-            v-if="error"
+            v-if="error && currentStep === 2"
             :class="[
               'message-box',
               error.includes('성공') ? 'success-message-box' : 'error-message-box',
@@ -214,6 +247,19 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast 알림 -->
+    <transition name="toast">
+      <div v-if="showToast" :class="['toast', toastType]">
+        <div class="toast-content">
+          <font-awesome-icon
+            :icon="['fas', toastType === 'success' ? 'check-circle' : 'times-circle']"
+            class="toast-icon"
+          />
+          <span class="toast-message">{{ toastMessage }}</span>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -250,11 +296,17 @@ const isChecking = ref(false)
 const isIdVerified = ref(false)
 const isGettingCode = ref(false)
 const verificationCode = ref('')
+const verificationMessage = ref('') // 인증 확인 전용 메시지
 const isVerifying = ref(false)
 const isCodeVerified = ref(false)
 const showPassword = ref(false)
 const isSubmitting = ref(false)
 const copySuccess = ref(false)
+
+// Toast 관련 상태
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastType = ref('success') // 'success' 또는 'error'
 
 // 단계별 진행 가능 여부
 const canProceed = computed(() => {
@@ -274,7 +326,7 @@ const canSubmit = computed(() => {
     formData.name &&
     formData.password &&
     formData.password === formData.passwordConfirm &&
-    formData.password.length >= 6
+    formData.password.length >= 8
   )
 })
 
@@ -308,22 +360,17 @@ const checkSolvedAcId = async () => {
 const getVerificationCode = async () => {
   try {
     isGettingCode.value = true
-    error.value = ''
+    verificationMessage.value = '' // 기존 메시지 초기화
     const response = await authStore.getVerificationCode(formData.solvedAcId)
     verificationCode.value = response.data.verificationCode
 
     // 인증코드 발급 시간 저장
     localStorage.setItem('verificationCodeTime', new Date().toISOString())
 
-    // 안내 메시지 표시
-    error.value = `
-      1. 아래 인증코드를 복사하세요.
-      2. solved.ac 프로필 설정 페이지(https://solved.ac/settings/profile)로 이동하세요.
-      3. name 또는 nameNative 필드에 인증코드를 붙여넣기 하세요.
-      4. solved.ac에서 저장 후, 1분 정도 기다렸다가 인증 확인 버튼을 클릭하세요.
-    `
+    // 성공적으로 발급된 경우에는 메시지를 표시하지 않음
   } catch (err) {
-    error.value = err.response?.data?.message || '인증 코드 발급 중 오류가 발생했습니다.'
+    verificationMessage.value =
+      err.response?.data?.message || '인증 코드 발급 중 오류가 발생했습니다.'
     verificationCode.value = ''
   } finally {
     isGettingCode.value = false
@@ -333,13 +380,13 @@ const getVerificationCode = async () => {
 // 인증 코드 확인
 const verifyCode = async () => {
   if (!verificationCode.value) {
-    error.value = '먼저 인증코드를 발급받아주세요.'
+    verificationMessage.value = '먼저 인증코드를 발급받아주세요.'
     return
   }
 
   try {
     isVerifying.value = true
-    error.value = ''
+    verificationMessage.value = ''
 
     // solved.ac 프로필에 변경사항이 반영될 시간을 주기 위해 잠시 대기
     await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -350,23 +397,19 @@ const verifyCode = async () => {
       isCodeVerified.value = true
       localStorage.setItem('verificationCode', verificationCode.value)
       localStorage.setItem('verifiedSolvedAcId', formData.solvedAcId)
-      error.value = '인증이 완료되었습니다. 이제 회원 정보를 입력해주세요.'
+      verificationMessage.value =
+        '인증이 완료되었습니다. 다음 버튼을 눌러 회원 정보를 입력해주세요.'
 
-      // 인증 성공 시 자동으로 다음 단계로 이동
-      setTimeout(() => {
-        if (currentStep.value === 1) {
-          nextStep()
-        }
-      }, 1000)
+      // 자동으로 다음 단계로 이동하는 코드 제거
     } else {
       isCodeVerified.value = false
-      error.value =
+      verificationMessage.value =
         '인증에 실패했습니다. solved.ac 프로필에 인증코드가 정확히 입력되었는지 확인하고, 저장 후 1분 정도 기다렸다가 다시 시도해주세요.'
     }
   } catch (err) {
     console.error('인증 확인 중 에러:', err)
     isCodeVerified.value = false
-    error.value = err.response?.data?.message || '인증 확인 중 오류가 발생했습니다.'
+    verificationMessage.value = err.response?.data?.message || '인증 확인 중 오류가 발생했습니다.'
   } finally {
     isVerifying.value = false
   }
@@ -377,18 +420,26 @@ const copyVerificationCode = async () => {
   try {
     await navigator.clipboard.writeText(verificationCode.value)
     copySuccess.value = true
-    error.value = '인증 코드가 클립보드에 복사되었습니다.'
 
     // 2초 후에 복사 성공 상태 초기화
     setTimeout(() => {
       copySuccess.value = false
-      if (error.value === '인증 코드가 클립보드에 복사되었습니다.') {
-        error.value = ''
-      }
     }, 2000)
   } catch (error) {
-    error.value = '인증 코드 복사에 실패했습니다. 직접 복사해주세요.'
+    console.error('인증 코드 복사 실패:', error)
   }
+}
+
+// Toast 표시 함수
+const showToastMessage = (message, type = 'success') => {
+  toastMessage.value = message
+  toastType.value = type
+  showToast.value = true
+
+  // 3초 후 Toast 숨기기
+  setTimeout(() => {
+    showToast.value = false
+  }, 3000)
 }
 
 // 회원가입 제출
@@ -417,14 +468,19 @@ const submitSignUp = async () => {
     const response = await authStore.signUp(signUpData)
     console.log('회원가입 응답:', response)
 
-    // 회원가입 성공 후 로그인 페이지로 이동
-    router.push({
-      path: '/login',
-      query: {
-        message: '회원가입이 완료되었습니다. 로그인해주세요.',
-        solvedAcId: formData.solvedAcId,
-      },
-    })
+    // 회원가입 성공 Toast 표시
+    showToastMessage('🎉 회원가입이 완료되었습니다!', 'success')
+
+    // 1.5초 후 로그인 페이지로 이동
+    setTimeout(() => {
+      router.push({
+        path: '/login',
+        query: {
+          message: '회원가입이 완료되었습니다. 로그인해주세요.',
+          solvedAcId: formData.solvedAcId,
+        },
+      })
+    }, 1500)
   } catch (err) {
     console.error('회원가입 에러:', err)
     if (err.response?.status === 400) {
@@ -466,8 +522,8 @@ const validateForm = () => {
   if (!formData.password) {
     errors.password = '비밀번호를 입력해주세요.'
     isValid = false
-  } else if (formData.password.length < 6) {
-    errors.password = '비밀번호는 6자 이상이어야 합니다.'
+  } else if (formData.password.length < 8) {
+    errors.password = '비밀번호는 8자 이상이어야 합니다.'
     isValid = false
   }
 
@@ -493,6 +549,9 @@ const validateForm = () => {
 const prevStep = () => {
   if (currentStep.value > 0) {
     currentStep.value--
+    // 단계가 변경될 때 메시지 초기화
+    verificationMessage.value = ''
+    error.value = ''
   }
 }
 
@@ -500,6 +559,9 @@ const prevStep = () => {
 const nextStep = () => {
   if (currentStep.value < steps.length - 1 && canProceed.value) {
     currentStep.value++
+    // 단계가 변경될 때 메시지 초기화
+    verificationMessage.value = ''
+    error.value = ''
   }
 }
 
@@ -790,6 +852,14 @@ onMounted(async () => {
   gap: 0.5rem;
 }
 
+.guide-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  border: 1px solid #ddd;
+}
+
 .link {
   color: var(--samsung-blue);
   text-decoration: none;
@@ -798,6 +868,14 @@ onMounted(async () => {
 
 .link:hover {
   text-decoration: underline;
+}
+
+.input-help {
+  display: block;
+  color: #666;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  font-style: italic;
 }
 
 .checkbox-container {
@@ -902,10 +980,86 @@ onMounted(async () => {
   }
 }
 
+/* Toast 스타일 */
+.toast {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  min-width: 300px;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #dc3545 0%, #e55d71 100%);
+  color: white;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  gap: 0.75rem;
+}
+
+.toast-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* Toast 애니메이션 */
+.toast-enter-active {
+  transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toast-leave-active {
+  transition: all 0.6s ease-in;
+}
+
+.toast-enter-from {
+  transform: translateX(100%) scale(0.8);
+  opacity: 0;
+}
+
+.toast-leave-to {
+  transform: translateX(100%) scale(0.8);
+  opacity: 0;
+}
+
+/* 반응형 Toast */
+@media (max-width: 768px) {
+  .toast {
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    min-width: auto;
+  }
+
+  .toast-enter-from,
+  .toast-leave-to {
+    transform: translateY(-100%) scale(0.8);
+  }
+}
+
 /* 페이드 애니메이션 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 1s ease;
 }
 
 .fade-enter-from,

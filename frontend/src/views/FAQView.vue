@@ -7,12 +7,12 @@
       </router-link>
       <h1>자주 묻는 질문</h1>
     </div>
-    
+
     <div class="faq-layout">
       <!-- 왼쪽 카테고리 목록 -->
       <div class="faq-categories">
-        <button 
-          v-for="category in categories" 
+        <button
+          v-for="category in categories"
           :key="category.id"
           :class="['category-button', { active: selectedCategory === category.id }]"
           @click="selectedCategory = category.id"
@@ -25,29 +25,28 @@
       <div class="faq-content">
         <div v-if="selectedCategory === 'background'" class="faq-answer">
           <p>
-            김영한님의 JPA 강의를 통해 스터디를 진행한후 해당 기술을 이론학습으로 끝나는게아니라 JPA를 적용해서 실 사용자가 있는 프로젝트를 만들어보자 ! 라는 다짐과 함께 탄생한게 
+            김영한님의 JPA 강의를 통해 스터디를 진행한후 해당 기술을 이론학습으로 끝나는게아니라
+            JPA를 적용해서 실 사용자가 있는 프로젝트를 만들어보자 ! 라는 다짐과 함께 탄생한게
             <span class="highlight">SSAFY FORCE</span>입니다.
           </p>
         </div>
         <div v-if="selectedCategory === 'members'" class="faq-answer">
-          <p>
-            <span class="highlight">SSAFY 13기</span> 서울캠퍼스 16반
-          </p>
+          <p><span class="highlight">SSAFY 13기</span> 서울캠퍼스 16반</p>
           <div class="member-profiles">
             <div class="member-profile">
-              <img src="@/mockdata/jeongyeon.png" alt="김승호" class="profile-image" />
+              <img src="@/mockdata/default_profile.png" alt="김승호" class="profile-image" />
               <span class="profile-name">김승호</span>
             </div>
             <div class="member-profile">
-              <img src="@/mockdata/jeongyeon.png" alt="김정연" class="profile-image" />
+              <img src="@/mockdata/default_profile.png" alt="김정연" class="profile-image" />
               <span class="profile-name">김정연</span>
             </div>
             <div class="member-profile">
-              <img src="@/mockdata/jeongyeon.png" alt="이권민" class="profile-image" />
+              <img src="@/mockdata/default_profile.png" alt="이권민" class="profile-image" />
               <span class="profile-name">이권민</span>
             </div>
             <div class="member-profile">
-              <img src="@/mockdata/jeongyeon.png" alt="이은성" class="profile-image" />
+              <img src="@/mockdata/default_profile.png" alt="이은성" class="profile-image" />
               <span class="profile-name">이은성</span>
             </div>
           </div>
@@ -66,14 +65,20 @@
         </div>
         <div v-if="selectedCategory === 'origin'" class="faq-answer">
           <p>
-            김영한님의 JPA 강의를 통해 스터디를 진행한후 해당 기술을 이론학습으로 끝나는게아니라 JPA를 적용해서 실 사용자가 있는 프로젝트를 만들어보자 ! 라는 다짐과 함께 탄생한게 
+            김영한님의 JPA 강의를 통해 스터디를 진행한후 해당 기술을 이론학습으로 끝나는게아니라
+            JPA를 적용해서 실 사용자가 있는 프로젝트를 만들어보자 ! 라는 다짐과 함께 탄생한게
             <span class="highlight">SSAFY FORCE</span>입니다.
           </p>
         </div>
 
         <div class="inquiry-guide">
           <p>원하는 답변을 찾지 못하셨나요?</p>
-          <p>그럼 하단의 <a href="https://forms.gle/6ZwK4FQjzZVR9D896" target="_blank" class="inquiry-link">문의하기</a>에서 직접 문의 해주세요.</p>
+          <p>
+            그럼 하단의
+            <a href="https://forms.gle/6ZwK4FQjzZVR9D896" target="_blank" class="inquiry-link"
+              >문의하기</a
+            >에서 직접 문의 해주세요.
+          </p>
           <p>최대한 빠르게 답변드리도록 하겠습니다!</p>
         </div>
       </div>
@@ -87,7 +92,7 @@ import { ref } from 'vue'
 const categories = [
   { id: 'background', name: '탄생배경' },
   { id: 'members', name: '구성원이 누군가요?' },
-  { id: 'auth', name: '인증' }
+  { id: 'auth', name: '인증' },
 ]
 
 const selectedCategory = ref('background')
@@ -292,4 +297,4 @@ h1 {
 .inquiry-link:hover {
   text-decoration: underline;
 }
-</style> 
+</style>

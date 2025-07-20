@@ -28,13 +28,13 @@ public class SyncStepListener implements StepExecutionListener {
         if (stepExecution.getReadCount() > 0) {
             double successRate = (double) stepExecution.getWriteCount() / stepExecution.getReadCount() * 100;
             double skipRate = (double) stepExecution.getSkipCount() / stepExecution.getReadCount() * 100;
-            log.info("📊 성공률: {:.1f}%, 스킵률: {:.1f}%", successRate, skipRate);
+            log.info("📊 성공률: {}%, 스킵률: {}%", successRate, skipRate);
 
             // 스킵률이 20% 이상이면 경고
             if (skipRate >= 20.0) {
                 log.warn("⚠️ 스킵률이 {}%로 높습니다!", skipRate);
                 return new ExitStatus("COMPLETED_WITH_HIGH_SKIP_RATE",
-                        String.format("스킵률: %.1f%%", skipRate));
+                        String.format("스킵률: "+ skipRate));
             }
         }
 
