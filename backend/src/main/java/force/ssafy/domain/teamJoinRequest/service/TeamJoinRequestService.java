@@ -5,6 +5,7 @@ import force.ssafy.domain.member.entity.MemberRole;
 import force.ssafy.domain.member.repository.MemberRepository;
 import force.ssafy.domain.team.entity.Team;
 import force.ssafy.domain.team.repository.TeamRepository;
+import force.ssafy.domain.teamJoinRequest.dto.MyTeamJoinRequestListDto;
 import force.ssafy.domain.teamJoinRequest.dto.TeamJoinRequestDto;
 import force.ssafy.domain.teamJoinRequest.entity.JoinStatus;
 import force.ssafy.domain.teamJoinRequest.entity.TeamJoinRequest;
@@ -14,6 +15,7 @@ import force.ssafy.domain.teamMember.repository.TeamMemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -125,5 +127,11 @@ public class TeamJoinRequestService {
         if (tm == null || tm.getRole() != MemberRole.LEADER) {
             throw new IllegalStateException("팀 리더만 가능한 접근입니다.");
         }
+    }
+
+    public MyTeamJoinRequestListDto getMyRequestList(Long memberId) {
+        List<TeamJoinRequest> list = teamJoinRequestRepository.findAllByRequester_IdAndStatus(memberId, JoinStatus.PENDING);
+
+        return MyTeamJoinRequestListDto.from(list);
     }
 }

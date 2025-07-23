@@ -174,21 +174,34 @@
   const loadTeams = async () => {
     loading.value = true
     try {
+      
+      // 공통 호출 = 전체 팀
+      const allTeamsReq = teamApi.fetchTeams()
+
+      // 로그인 여부에 따라 추가 호출 결정
+      const myTeamsReq  = auth.isLoggedIn ? teamApi.getMyTeams()             : Promise.resolve({ data:{ teams: [] }})
+      const pendingReq  = auth.isLoggedIn ? teamApi.getmyTeamJoinRequestList(): Promise.resolve({ data:{ teamList: [] }})
+
       // ① 전체 팀 + ② 내가 가입한 팀 병렬 호출
-      const [allTeamsRes, myTeamsRes] = await Promise.all([
-        teamApi.fetchTeams(),
-        teamApi.getMyTeams(),
-      ])
+      const [allTeamsRes, myTeamsRes, pendingRes] =
+      await Promise.all([allTeamsReq, myTeamsReq, pendingReq])
 
       // 내가 가입한 팀 id 집합
       const myTeamIds = new Set(myTeamsRes.data.teams.map(t => t.id))
+      // 내가 가입 신청한 팀 id 집합
+      const pendingIds  = new Set(pendingRes.data.teamList)
 
       // 검색어 필터 + joinStatus 주입
       teams.value = allTeamsRes.data.teams
-        .filter(t =>
-          t.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-        )
-        .map(t => ({
+      .filter(t =>
+        t.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      )
+      .map(t => {
+        let status = 'NONE'
+        if (myTeamIds.has(t.teamId))      status = 'JOINED'
+        else if (pendingIds.has(t.teamId)) status = 'PENDING'
+
+        return {
           id: t.teamId,
           name: t.name,
           description: t.description,
@@ -196,8 +209,9 @@
           createdAt: t.createdAt,
           teamMembers: t.teamMembers || [],
           profileImage: t.profileImage,
-          joinStatus: myTeamIds.has(t.teamId) ? 'JOINED' : 'NONE',
-        }))
+          joinStatus: status,
+        }
+      })
     } catch (e) {
       console.error('팀 로드 실패:', e)
       teams.value = []
@@ -227,6 +241,7 @@
     joiningTeamId.value = team.id
     try {
       await teamApi.requestJoin(team.id)          // ★ 새 엔드포인트
+      team.joinStatus = 'PENDING'
       // UX: 응답이 OK면 바로 상태만 업데이트
       team.joinStatus = 'PENDING'
       alert('가입 요청이 전송되었습니다. 리더 승인을 기다려주세요!')

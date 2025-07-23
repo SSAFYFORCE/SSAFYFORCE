@@ -1,5 +1,6 @@
 package force.ssafy.domain.teamJoinRequest.controller;
 
+import force.ssafy.domain.teamJoinRequest.dto.MyTeamJoinRequestListDto;
 import force.ssafy.domain.teamJoinRequest.dto.TeamJoinRequestDto;
 import force.ssafy.domain.teamJoinRequest.service.TeamJoinRequestService;
 import force.ssafy.global.security.userdetails.CustomUserDetails;
@@ -100,6 +101,13 @@ public class TeamJoinRequestController {
 
         service.cancel(teamId, user.getMemberId());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/join-requests/me")
+    public ResponseEntity<MyTeamJoinRequestListDto> myList(
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        return ResponseEntity.ok(service.getMyRequestList(user.getMemberId()));
     }
 
 }

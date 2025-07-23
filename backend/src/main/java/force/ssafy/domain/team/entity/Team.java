@@ -1,5 +1,6 @@
 package force.ssafy.domain.team.entity;
 
+import force.ssafy.domain.member.entity.MemberRole;
 import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,5 +41,13 @@ public class Team {
     public void delete() {
         this.deleted = true;
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public Long getLeaderId() {
+        return this.teamMembers.stream()
+                .filter(tm -> tm.getRole() == MemberRole.LEADER)   // ① LEADER 비교
+                .findFirst()
+                .map(tm -> tm.getMember().getId())                 // ② member id 반환
+                .orElseThrow(() -> new IllegalStateException("리더 없음"));
     }
 }

@@ -23,6 +23,7 @@
               :src="team.profileImage || defaultProfileImage"
               :alt="team.name"
               class="team-image"
+              @error="onImgError"
             />
           </div>
 
@@ -43,31 +44,37 @@
 
             <!-- 팀 가입 버튼 -->
             <div class="team-actions">
+              <!-- 로그인 X -->
+              <router-link
+                v-if="!isLoggedIn"
+                to="/login"
+                class="btn btn-primary">
+                <font-awesome-icon :icon="['fas', 'user']" /> 로그인 후 가입
+              </router-link>
+
+              <!-- 가입 안했고 요청도 안 함 -->
               <button
-                v-if="!isJoined && isLoggedIn"
+                v-else-if="joinStatus === 'NONE'"
                 @click="handleJoinTeam"
                 :disabled="joiningTeam"
-                class="btn btn-primary"
-              >
+                class="btn btn-primary">
                 <template v-if="joiningTeam">
-                  <font-awesome-icon :icon="['fas', 'spinner']" spin />
-                  가입 중...
+                  <font-awesome-icon :icon="['fas', 'spinner']" spin /> 가입 중...
                 </template>
                 <template v-else>
-                  <font-awesome-icon :icon="['fas', 'plus']" />
-                  팀 가입하기
+                  <font-awesome-icon :icon="['fas', 'plus']" /> 팀 가입하기
                 </template>
               </button>
 
-              <span v-else-if="isJoined" class="joined-badge">
-                <font-awesome-icon :icon="['fas', 'check-circle']" />
-                가입된 팀
+              <!-- 요청 대기 중 -->
+              <span v-else-if="joinStatus === 'PENDING'" class="pending-badge">
+                <font-awesome-icon :icon="['fas', 'hourglass-half']" /> 요청 대기 중
               </span>
 
-              <router-link v-else-if="!isLoggedIn" to="/login" class="btn btn-primary">
-                <font-awesome-icon :icon="['fas', 'user']" />
-                로그인 후 가입
-              </router-link>
+              <!-- 이미 멤버 -->
+              <span v-else class="joined-badge">
+                <font-awesome-icon :icon="['fas', 'check-circle']" /> 가입된 팀
+              </span>
             </div>
           </div>
         </div>
@@ -106,6 +113,44 @@
               <div class="member-stats">
                 <!-- 여기에 멤버별 통계 정보가 들어갈 수 있습니다 -->
                 <span class="member-status">활성</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 팀 멤버 목록 아래에 추가 -->
+        <div v-if="isLeader && joinRequests.length" class="join-req-section">
+          <h2 class="section-title">
+            <font-awesome-icon :icon="['fas', 'paper-plane']" />
+            가입 요청 ({{ joinRequests.length }}건)
+          </h2>
+
+          <div class="req-grid">
+            <!-- 가입 요청 카드 (vertical) -->
+            <div v-for="req in joinRequests" :key="req.id" class="req-card">
+              <!-- 아바타 -->
+              <img
+                class="req-avatar"
+                :src="req.requester?.profileImage || defaultProfileImage"
+                :alt="req.requester?.name"
+                @error="e => (e.target.src = defaultProfileImage)"
+              />
+
+              <!-- 이름 · 닉네임 -->
+              <h3 class="req-name">{{ req.requester?.name }}</h3>
+              <p  class="req-nickname">@{{ req.requester?.nickname }}</p>
+
+              <!-- 버튼 두 개를 가로로 -->
+              <div class="req-buttons">
+                <!-- 승인 버튼 -->
+                <button class="btn-approve" @click="approve(req.id)">
+                  <font-awesome-icon :icon="['fas','check']" /> 승인
+                </button>
+
+                <!-- 거절 버튼 -->
+                <button class="btn-reject"  @click="reject(req.id)">
+                  <font-awesome-icon :icon="['fas','times']" /> 거절
+                </button>
               </div>
             </div>
           </div>
@@ -162,9 +207,11 @@ import { useAuthStore } from '@/stores/auth'
 import { teamApi } from '@/api/teamApi'
 import defaultProfileImage from '@/mockdata/default_profile.png'
 
+const onImgError = (e) => { e.target.src = defaultProfileImage }
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const pendingIds = ref(new Set())
 
 // 라우트에서 teamId 가져오기
 const teamId = computed(() => route.params.teamId)
@@ -174,6 +221,11 @@ const team = ref(null)
 const loading = ref(true)
 const error = ref('')
 const joiningTeam = ref(false)
+
+const joinRequests = ref([])          // 대기 중 요청 목록
+const isLeader = computed(() =>
+  team.value?.leaderId === authStore.user?.memberId
+)
 
 // 계산된 속성
 const isLoggedIn = computed(() => authStore.isLoggedIn)
@@ -189,25 +241,60 @@ const isJoined = computed(() => {
 // 팀 상세 정보 로드
 const loadTeamDetail = async () => {
   loading.value = true
-  error.value = ''
+  error.value   = ''
 
   try {
-    console.log('팀 상세 정보 요청 중...', teamId.value)
-    const response = await teamApi.getTeamDetail(teamId.value)
-    team.value = response.data
-    console.log('팀 상세 정보 로드 성공:', team.value)
-  } catch (err) {
-    console.error('팀 상세 정보 로드 실패:', err)
-    if (err.response?.status === 404) {
-      error.value = '존재하지 않는 팀입니다.'
-    } else if (err.response?.status === 403) {
-      error.value = '팀 정보에 접근할 권한이 없습니다.'
-    } else {
-      error.value = err.response?.data?.message || '팀 정보를 불러오는데 실패했습니다.'
+    console.log('[LOAD] teamId =', teamId.value)
+
+    // ── 1) 팀 정보 호출 ───────────────────────────
+    const { data } = await teamApi.getTeamDetail(teamId.value)
+    team.value = data
+    console.log('[LOAD] team', data)
+
+    // ── 2) 내가 팀장인지 즉석 판단 ────────────────
+    const myId       = authStore.user?.memberId
+    const leaderId   = data.leaderId
+    const leaderMode = myId === leaderId
+
+    console.log('[CHECK] myId =', myId,
+                'leaderId =', leaderId,
+                '→ leaderMode =', leaderMode)
+
+    // ── 3) 팀장일 때 가입요청 목록 가져오기 ───────
+    if (leaderMode) {
+      const { data: reqList } =
+        await teamApi.fetchJoinRequests(teamId.value)
+
+      joinRequests.value = reqList
+      console.log('[JOIN‑REQ] count =', reqList.length, reqList)
     }
+
+    // ── 4) (선택) 내가 보낸 가입요청 목록 ─────────
+    if (isLoggedIn.value) {
+      const { data: myReq } = await teamApi.getmyTeamJoinRequestList()
+      pendingIds.value = new Set(myReq.teamList)
+      console.log('[MY‑REQ] teamList =', myReq.teamList)
+    }
+  } catch (err) {
+    console.error('[ERROR] loadTeamDetail →', err)
+    error.value =
+      err.response?.data?.message || '팀 정보를 불러오는데 실패했습니다.'
   } finally {
     loading.value = false
   }
+}
+
+
+const approve = async (reqId) => {
+  await teamApi.approveJoinRequest(teamId.value, reqId)
+  joinRequests.value = joinRequests.value.filter(r => r.id !== reqId)
+  // 멤버 수 증가 → 팀 정보 재조회
+  await loadTeamDetail()
+}
+
+const reject = async (reqId) => {
+  await teamApi.rejectJoinRequest(teamId.value, reqId)
+  joinRequests.value = joinRequests.value.filter(r => r.id !== reqId)
 }
 
 // 팀 가입 처리
@@ -221,9 +308,10 @@ const handleJoinTeam = async () => {
 
   try {
     console.log('팀 가입 요청 중...', teamId.value)
-    await teamApi.joinTeam(teamId.value)
+    await teamApi.requestJoin(teamId.value)
+    pendingIds.value.add(Number(teamId.value))
     console.log('팀 가입 성공')
-    alert('팀에 성공적으로 가입했습니다!')
+    alert('가입 요청이 전송되었습니다. 리더 승인을 기다려주세요!')
 
     // 팀 정보 다시 로드하여 멤버 목록 업데이트
     await loadTeamDetail()
@@ -272,6 +360,14 @@ onMounted(async () => {
   await authStore.initialize()
   await loadTeamDetail()
 })
+
+const joinStatus = computed(() => {
+  if (!isLoggedIn.value) return 'NONE'                      // 비로그인
+  if (isJoined.value)     return 'JOINED'                   // 이미 팀 멤버
+  if (pendingIds.value.has(+teamId.value)) return 'PENDING' // 승인 대기
+  return 'NONE'                                             // 그 밖의 경우
+})
+
 </script>
 
 <style scoped>
@@ -605,4 +701,115 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
 }
+
+.pending-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: #fff3cd;   /* 노란색 */
+  color: #856404;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.join-req-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,.08);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.req-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+  gap: 1rem;
+}
+
+.req-card {
+  display: flex;
+  flex-direction: column;   /* 세로 배치 */
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  transition: all .2s;
+  cursor: default;
+  border: 2px solid transparent;
+}
+
+.req-card:hover {
+  background: #e9ecef;
+  border-color: var(--samsung-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.req-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.req-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.req-name      { font-size: 1.05rem; font-weight: 600; color:#333; margin:0; }
+.req-nickname  { font-size: .9rem;   color:#666;       margin:0; }
+
+.req-actions {
+  display: flex;
+  gap: .5rem;
+}
+
+.req-buttons {
+  display: flex;
+  gap: .5rem;           /* 버튼 사이 간격 */
+  margin-top: .8rem;    /* 아바타/텍스트와 간격 */
+}
+
+.btn-approve,
+.btn-reject {
+  flex: 1 1 80px;       /* 두 버튼이 같은 폭 */
+  justify-content: center;
+}
+
+.btn-approve,
+.btn-reject {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .4rem .7rem;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-approve,
+.btn-reject {
+  display: inline-flex;       /* 아이콘+텍스트 한 줄 배치 */
+  align-items: center;
+  gap: .25rem;                /* 아이콘‑텍스트 사이 간격 */
+  white-space: nowrap;        /* 줄바꿈 방지 → “X 거절” */
+}
+
+
+.btn-approve { background: #28a745; color: #fff; }
+.btn-reject  { background: #dc3545; color: #fff; }
+
+.btn-approve:hover { background: #218838; }
+.btn-reject:hover  { background: #c82333; }
+
+
 </style>

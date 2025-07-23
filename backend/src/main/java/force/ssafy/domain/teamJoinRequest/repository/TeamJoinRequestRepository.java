@@ -20,5 +20,11 @@ public interface TeamJoinRequestRepository extends JpaRepository<TeamJoinRequest
     );
 
     @EntityGraph(attributePaths = {"requester", "team"})
+    List<TeamJoinRequest> findAllByRequester_IdAndStatus(
+            Long requesterId,
+            JoinStatus status
+    );
+
+    @EntityGraph(attributePaths = {"requester", "team"})
     List<TeamJoinRequest> findByTeam_IdAndStatus(Long teamId, JoinStatus status);
 }
