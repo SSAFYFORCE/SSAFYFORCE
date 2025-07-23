@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -39,7 +40,7 @@ public class SolvedProblemSyncService {
     @Value("${aws.lambda.baekjoon-crawler-url}")
     private String lambdaUrl;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public SyncResultResponse syncSolvedProblems(String solvedAcId) {
 
         // 1. 회원 정보 조회
