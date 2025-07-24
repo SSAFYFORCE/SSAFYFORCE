@@ -2,6 +2,7 @@ package force.ssafy.domain.problem.controller;
 
 import force.ssafy.domain.problem.dto.request.ProblemCreateRequest;
 import force.ssafy.domain.problem.dto.response.ProblemGetResponse;
+import force.ssafy.domain.problem.entity.ProblemTier;
 import force.ssafy.domain.problem.service.ProblemCrawlService;
 import force.ssafy.domain.problem.service.ProblemService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,12 @@ public class ProblemController {
 
     @GetMapping
     public ResponseEntity<Page<ProblemGetResponse>> findAll(
+            @RequestParam(required = false) Long problemNumber,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) ProblemTier tier,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok().body(problemService.findAll(PageRequest.of(page, size)));
+        return ResponseEntity.ok().body(problemService.findAll(problemNumber, title, tier, PageRequest.of(page, size)));
     }
 
     @PostMapping
