@@ -1085,6 +1085,26 @@ async function handleImageDelete() {
   animation: fa-spin 1s infinite linear;
 }
 
+/* 데스크톱에서만 sticky 적용 */
+@media (min-width: 1025px) {
+  .profile-card {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+/* 모바일에서는 sticky 제거 */
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'profile-card'
+      'recent-problems';
+  }
+  .profile-card {
+    position: static; /* sticky 제거 */
+  }
+}
 @keyframes fa-spin {
   0% {
     transform: rotate(0deg);
