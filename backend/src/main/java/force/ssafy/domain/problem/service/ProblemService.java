@@ -7,7 +7,9 @@ import force.ssafy.domain.algorithm.repository.AlgorithmRepository;
 import force.ssafy.domain.problem.dto.request.ProblemCreateRequest;
 import force.ssafy.domain.problem.dto.response.ProblemGetResponse;
 import force.ssafy.domain.problem.entity.Problem;
+import force.ssafy.domain.problem.entity.ProblemTier;
 import force.ssafy.domain.problem.repository.ProblemRepository;
+import force.ssafy.domain.problem.spec.ProblemSpecs;
 import force.ssafy.domain.problemAlgorithm.entity.ProblemAlgorithm;
 import force.ssafy.domain.problemAlgorithm.repository.ProblemAlgorithmRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,10 +36,15 @@ public class ProblemService {
 
     // ProblemCrawlService에서 ProblemService를 호출 중임
 
-    public Page<ProblemGetResponse> findAll(Pageable pageable) {
+    public Page<ProblemGetResponse> findAll(Long problemNumber, String title, ProblemTier tier, Pageable pageable) {
         log.info("selectAllProblems 호출");
 
-        Page<Problem> problems = problemRepository.findAll(pageable);
+        Specification<Problem> spec = Specification
+                .where(ProblemSpecs.containsTitle(title))
+                .and(ProblemSpecs.hasProblemNumber(problemNumber))
+                .and(ProblemSpecs.sameWithTier(tier));
+
+        Page<Problem> problems = problemRepository.findAll(spec, pageable);
         return problems.map(p -> {
             List<AlgorithmGetResponse> algorithmGetResponses = extractAlgorithmResponseFromEntity(p.getProblemAlgorithms());
             return ProblemGetResponse.of(p, algorithmGetResponses);
