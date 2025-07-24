@@ -7,6 +7,44 @@
         <p>다양한 알고리즘 문제를 풀어보세요</p>
       </div>
 
+      <!-- 필터 입력 폼 추가 -->
+      <div class="filters-section">
+        <div class="search-container">
+          <input
+            v-model="filterProblemNumber"
+            class="search-input"
+            type="text"
+            placeholder="문제 번호"
+          />
+          <input
+            v-model="filterTitle"
+            class="search-input"
+            type="text"
+            placeholder="문제 제목"
+          />
+          <select v-model="filterTier" class="filter-select">
+            <option value="">전체 티어</option>
+            <option value="G1">G1</option>
+            <option value="G2">G2</option>
+            <option value="G3">G3</option>
+            <option value="G4">G4</option>
+            <option value="G5">G5</option>
+            <option value="S1">S1</option>
+            <option value="S2">S2</option>
+            <option value="S3">S3</option>
+            <option value="S4">S4</option>
+            <option value="S5">S5</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="B3">B3</option>
+            <option value="B4">B4</option>
+            <option value="B5">B5</option>
+            <!-- 필요시 추가 -->
+          </select>
+          <button class="search-btn" @click="onSearch">검색</button>
+        </div>
+      </div>
+
       <!-- 문제 목록 -->
       <div class="problems-section">
         <div v-if="loading" class="loading">
@@ -118,6 +156,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { problemApi } from '@/api/problemApi'
 
+// 필터용 상태 변수 추가
+const filterProblemNumber = ref('')
+const filterTitle = ref('')
+const filterTier = ref('')
+
 // 반응성 데이터
 const problems = ref([])
 const loading = ref(true)
@@ -130,6 +173,12 @@ const currentPage = ref(0)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const pageSize = 15
+
+// 검색 버튼 클릭 시 동작
+const onSearch = () => {
+  currentPage.value = 0 // 검색 시 첫 페이지로 이동
+  loadProblems()
+}
 
 // 페이지네이션 표시 페이지 계산
 const displayPages = computed(() => {
@@ -166,18 +215,21 @@ const getTierColor = (tier) => {
   return { color: colors[tierName] || '#2d2d2d' }
 }
 
-// 쿼리 파라미터 생성 함수
+// 쿼리 파라미터 생성 함수 (필터 반영)
 const buildQueryParams = () => {
   const params = new URLSearchParams()
-
-  // 페이지네이션 파라미터
   params.append('page', currentPage.value.toString())
   params.append('size', pageSize.toString())
 
   // 필터 파라미터
-  if (selectedTier.value) params.append('tier', selectedTier.value)
+  if (filterProblemNumber.value) params.append('problemNumber', filterProblemNumber.value)
+  if (filterTitle.value) params.append('title', filterTitle.value)
+  if (filterTier.value) params.append('tier', filterTier.value)
+
+  // 기존 searchQuery, selectedAlgorithm 등 필요시 추가
   if (selectedAlgorithm.value) params.append('algorithm', selectedAlgorithm.value)
   if (searchQuery.value) params.append('search', searchQuery.value)
+  if (selectedTier.value) params.append('tier', selectedTier.value)
   if (selectedSolvedStatus.value !== '')
     params.append('solved', selectedSolvedStatus.value.toString())
 
