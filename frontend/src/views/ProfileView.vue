@@ -69,6 +69,26 @@
                 <span class="sync-result-text">{{ syncResult }}</span>
               </div>
             </div>
+            <div class="external-links">
+              <a
+                :href="`https://solved.ac/profile/${profile.solvedAcId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="external-link solved-ac-link"
+              >
+                <font-awesome-icon :icon="['fas', 'link']" />
+                solved.ac
+              </a>
+              <a
+                :href="`https://www.acmicpc.net/user/${profile.solvedAcId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="external-link baekjoon-link"
+              >
+                <font-awesome-icon :icon="['fas', 'link']" />
+                백준
+              </a>
+            </div>
           </div>
 
           <!-- 소속 팀 정보 -->
@@ -1180,5 +1200,69 @@ async function handleImageDelete() {
 }
 .hidden {
   display: none;
+}
+/* 외부 링크 버튼 스타일 */
+.external-links {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.external-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.solved-ac-link {
+  background-color: #17ce3a;
+  color: white;
+  border-color: #17ce3a;
+}
+
+.solved-ac-link:hover {
+  background-color: #14b532;
+  border-color: #14b532;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(23, 206, 58, 0.3);
+}
+
+.baekjoon-link {
+  background-color: #0076c0;
+  color: white;
+  border-color: #0076c0;
+}
+
+.baekjoon-link:hover {
+  background-color: #005a91;
+  border-color: #005a91;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 118, 192, 0.3);
+}
+
+.external-link:active {
+  transform: translateY(0);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .external-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .external-link {
+    width: 100%;
+  }
 }
 </style>
