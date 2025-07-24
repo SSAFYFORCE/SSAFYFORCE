@@ -3,45 +3,46 @@
     <h1 class="page-title">전체 랭킹</h1>
 
     <div class="filter-controls">
-      <RankingFilter
-        :show-type-filter="true"
-        @update:period="handlePeriodChange"
-        @update:type="handleTypeChange"
-      />
+      <RankingFilter :show-type-filter="false" @update:period="handlePeriodChange" />
     </div>
 
-    <div class="ranking-content">
+    <div class="rankings-grid">
       <RankingTable
         :period="selectedPeriod"
-        :type="selectedType"
-        :rankings="rankings"
-        :loading="loading"
-        :title="tableTitle"
+        type="member"
+        :rankings="memberRankings"
+        :loading="loadingMember"
         :limit="null"
-        :show-full="selectedType === 'team'"
+        title="개인"
+      />
+
+      <RankingTable
+        :period="selectedPeriod"
+        type="team"
+        :rankings="teamRankings"
+        :loading="loadingTeam"
+        :limit="null"
+        title="팀"
+        :show-full="true"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { rankingApi } from '@/api/rankingApi.js'
 import RankingFilter from '@/components/ranking/RankingFilter.vue'
 import RankingTable from '@/components/ranking/RankingTable.vue'
 
-// 상태 정의
-const selectedPeriod = ref('DAILY')
-const selectedType = ref('member') // 기본값은 'member' (개인 랭킹)
+// 상태 정의 (초기값을 MONTHLY로 변경)
+const selectedPeriod = ref('MONTHLY')
 const selectedDate = ref(null)
-const rankings = ref([])
-const loading = ref(false)
+const memberRankings = ref([])
+const teamRankings = ref([])
+const loadingMember = ref(false)
+const loadingTeam = ref(false)
 const error = ref('')
-
-// 테이블 제목 계산
-const tableTitle = computed(() => {
-  return selectedType.value === 'member' ? '개인 랭킹' : '팀 랭킹'
-})
 
 // 기간 필터 변경 핸들러
 const handlePeriodChange = (period) => {
@@ -50,53 +51,64 @@ const handlePeriodChange = (period) => {
     weekly: 'WEEKLY',
     monthly: 'MONTHLY',
   }
-  selectedPeriod.value = periodMap[period] || 'DAILY'
-  loadRankings() // 필터 변경 시 랭킹 다시 로드
+  selectedPeriod.value = periodMap[period] || 'MONTHLY'
+  loadAllRankings()
 }
 
-// 타입 필터 변경 핸들러
-const handleTypeChange = (type) => {
-  const typeMap = {
-    individual: 'member',
-    team: 'team',
-  }
-  selectedType.value = typeMap[type] || 'member'
-  loadRankings() // 필터 변경 시 랭킹 다시 로드
-}
-
-// 랭킹 데이터 로드 함수
-const loadRankings = async () => {
-  loading.value = true
+// 개인 랭킹과 팀 랭킹 데이터를 모두 로드하는 함수
+const loadAllRankings = async () => {
+  loadingMember.value = true
+  loadingTeam.value = true
   error.value = ''
 
   try {
-    const response = await rankingApi.getRanking(
-      selectedType.value,
+    const memberResponse = await rankingApi.getRanking(
+      'member',
       selectedPeriod.value,
       selectedDate.value,
     )
-    if (response.data && Array.isArray(response.data.rankings)) {
-      rankings.value = response.data.rankings
+    if (memberResponse.data && Array.isArray(memberResponse.data.rankings)) {
+      memberRankings.value = memberResponse.data.rankings
     } else {
-      rankings.value = []
+      memberRankings.value = []
     }
   } catch (err) {
-    console.error('랭킹 데이터 로드 오류:', err)
-    error.value = '랭킹 데이터를 불러오는 중 오류가 발생했습니다.'
-    rankings.value = []
+    console.error('개인 랭킹 로드 오류:', err)
+    error.value = '개인 랭킹 데이터를 불러오는 중 오류가 발생했습니다.'
+    memberRankings.value = []
   } finally {
-    loading.value = false
+    loadingMember.value = false
+  }
+
+  try {
+    const teamResponse = await rankingApi.getRanking(
+      'team',
+      selectedPeriod.value,
+      selectedDate.value,
+    )
+    if (teamResponse.data && Array.isArray(teamResponse.data.rankings)) {
+      teamRankings.value = teamResponse.data.rankings
+    } else {
+      teamRankings.value = []
+    }
+  } catch (err) {
+    console.error('팀 랭킹 로드 오류:', err)
+    error.value =
+      (error.value ? error.value + '\n' : '') + '팀 랭킹 데이터를 불러오는 중 오류가 발생했습니다.'
+    teamRankings.value = []
+  } finally {
+    loadingTeam.value = false
   }
 }
 
 // 컴포넌트 마운트 시 초기 데이터 로드
 onMounted(() => {
-  loadRankings()
+  loadAllRankings()
 })
 
-// 기간 또는 타입 변경 감지하여 랭킹 다시 로드
-watch([selectedPeriod, selectedType], () => {
-  loadRankings()
+// 기간 변경 감지하여 랭킹 다시 로드
+watch(selectedPeriod, () => {
+  loadAllRankings()
 })
 </script>
 
@@ -122,6 +134,13 @@ watch([selectedPeriod, selectedType], () => {
   justify-content: flex-end;
 }
 
+.rankings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
 @media (max-width: 1200px) {
   .ranking-page {
     max-width: 80%;
@@ -135,6 +154,9 @@ watch([selectedPeriod, selectedType], () => {
   }
   .page-title {
     font-size: 2rem;
+  }
+  .rankings-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
