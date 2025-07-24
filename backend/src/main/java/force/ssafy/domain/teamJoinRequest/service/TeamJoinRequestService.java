@@ -100,7 +100,9 @@ public class TeamJoinRequestService {
                 .findByTeam_IdAndRequester_IdAndStatus(teamId, memberId, JoinStatus.PENDING)
                 .orElseThrow(() -> new EntityNotFoundException("대기 중인 요청이 없습니다."));
 
-        req.cancel();
+        // 취소 처리 말고 걍 삭제
+        teamJoinRequestRepository.delete(req);
+        // req.cancel();
     }
 
     public List<TeamJoinRequestDto> getRequestList(Long teamId, Long memberId) {

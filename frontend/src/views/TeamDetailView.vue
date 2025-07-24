@@ -66,10 +66,20 @@
                 </template>
               </button>
 
-              <!-- 요청 대기 중 -->
-              <span v-else-if="joinStatus === 'PENDING'" class="pending-badge">
-                <font-awesome-icon :icon="['fas', 'hourglass-half']" /> 요청 대기 중
-              </span>
+              <button
+                v-else-if="joinStatus === 'PENDING'"
+                class="pending-badge"
+                @click="cancelMyRequest"
+                @mouseenter="pendingHover = true"
+                @mouseleave="pendingHover = false">
+            
+                <template v-if="!pendingHover">
+                  <font-awesome-icon :icon="['fas','hourglass-half']" /> 요청 대기 중
+                </template>
+                <template v-else>
+                  <font-awesome-icon :icon="['fas','times']" /> 신청 취소
+                </template>
+              </button>
 
               <!-- 이미 멤버 -->
               <span v-else class="joined-badge">
@@ -221,6 +231,21 @@ const team = ref(null)
 const loading = ref(true)
 const error = ref('')
 const joiningTeam = ref(false)
+
+const pendingHover = ref(false)
+
+// 내 가입 요청 취소
+const cancelMyRequest = async () => {
+  try {
+    await teamApi.cancelJoinRequest(teamId.value)
+    pendingIds.value.delete(+teamId.value)   // 컴퓨티드 joinStatus가 자동으로 'NONE' 으로
+    await loadTeamDetail()                   // 멤버 수 등 새로고침
+    alert('가입 요청을 취소했어요.')
+  } catch (e) {
+    console.error('[CANCEL] 실패', e)
+    alert(e.response?.data?.message || '요청 취소에 실패했습니다.')
+  }
+}
 
 const joinRequests = ref([])          // 대기 중 요청 목록
 const isLeader = computed(() =>
@@ -712,7 +737,13 @@ const joinStatus = computed(() => {
   border-radius: 8px;
   font-weight: 500;
   font-size: 1rem;
+  border:none;
 }
+
+.pending-badge:hover{
+  background:#f8d7da;color:#721c24;         /* hover → 붉은 톤 */
+}
+.pending-badge:disabled{opacity:.6;cursor:not-allowed}
 
 .join-req-section {
   background: white;

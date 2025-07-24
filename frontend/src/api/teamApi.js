@@ -23,6 +23,10 @@ export const teamApi = {
   /** 가입 요청 거절 */
   rejectJoinRequest: (teamId, reqId) => 
     api.patch(`/teams/${teamId}/join-requests/${reqId}/reject`),
+
+  cancelJoinRequest: (teamId) => 
+    api.delete(`/teams/${teamId}/join-requests/cancel`),
+
   /** 내 팀 목록 조회 */
   getMyTeams: () => api.get('/teams/me'),
   /** 내가 가입 신청한 팀 조회 */
