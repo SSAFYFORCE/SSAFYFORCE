@@ -38,7 +38,7 @@
       </div>
 
       <div class="view-more">
-        <router-link to="/ranking" class="btn btn-outline">전체 랭킹 보기</router-link>
+        <router-link to="/ranking" class="btn btn-primary">전체 랭킹 보기</router-link>
       </div>
     </section>
   </div>
