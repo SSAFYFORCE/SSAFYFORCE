@@ -974,8 +974,8 @@ async function handleImageDelete() {
 .problem-item:hover {
   background-color: #f8f9fa;
   border-color: #dee2e6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .problem-tier-badge {
@@ -1011,8 +1011,9 @@ async function handleImageDelete() {
 }
 
 .problem-title {
-  color: #333;
-  font-size: 0.9rem;
+  color: #000000;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .problem-meta {
