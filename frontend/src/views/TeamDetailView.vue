@@ -127,28 +127,28 @@
 
           <div class="req-grid">
             <!-- 가입 요청 카드 (vertical) -->
-            <div v-for="req in joinRequests" :key="req.id" class="req-card">
+            <div v-for="req in joinRequests" :key="req.requestId" class="req-card" @click="goToProfile(req.nickname)">
               <!-- 아바타 -->
               <img
                 class="req-avatar"
-                :src="req.requester?.profileImage || defaultProfileImage"
-                :alt="req.requester?.name"
+                :src="req.profileImage || defaultProfileImage"
+                :alt="req.name"
                 @error="e => (e.target.src = defaultProfileImage)"
               />
 
               <!-- 이름 · 닉네임 -->
-              <h3 class="req-name">{{ req.requester?.name }}</h3>
-              <p  class="req-nickname">@{{ req.requester?.nickname }}</p>
+              <h3 class="req-name">{{ req.name }}</h3>
+              <p  class="req-nickname">@{{ req.nickname }}</p>
 
               <!-- 버튼 두 개를 가로로 -->
               <div class="req-buttons">
                 <!-- 승인 버튼 -->
-                <button class="btn-approve" @click="approve(req.id)">
+                <button class="btn-approve" @click.stop="approve(req.requestId)">
                   <font-awesome-icon :icon="['fas','check']" /> 승인
                 </button>
 
                 <!-- 거절 버튼 -->
-                <button class="btn-reject"  @click="reject(req.id)">
+                <button class="btn-reject"  @click.stop="reject(req.requestId)">
                   <font-awesome-icon :icon="['fas','times']" /> 거절
                 </button>
               </div>
@@ -287,14 +287,14 @@ const loadTeamDetail = async () => {
 
 const approve = async (reqId) => {
   await teamApi.approveJoinRequest(teamId.value, reqId)
-  joinRequests.value = joinRequests.value.filter(r => r.id !== reqId)
+  joinRequests.value = joinRequests.value.filter(r => r.requestId  !== reqId)
   // 멤버 수 증가 → 팀 정보 재조회
   await loadTeamDetail()
 }
 
 const reject = async (reqId) => {
   await teamApi.rejectJoinRequest(teamId.value, reqId)
-  joinRequests.value = joinRequests.value.filter(r => r.id !== reqId)
+  joinRequests.value = joinRequests.value.filter(r => r.requestId !== reqId)
 }
 
 // 팀 가입 처리

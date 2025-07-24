@@ -69,7 +69,7 @@ public class TeamJoinRequestService {
 
         checkTeamLeader(teamId, memberId);
 
-        TeamJoinRequest request = teamJoinRequestRepository.findByTeam_IdAndRequester_IdAndStatus(teamId, reqId, JoinStatus.PENDING)
+        TeamJoinRequest request = teamJoinRequestRepository.findByIdAndTeam_IdAndStatus(reqId, teamId, JoinStatus.PENDING)
                 .orElseThrow(() -> new EntityNotFoundException("해당 요청이 없습니다. "));
 
         request.approve();
@@ -84,10 +84,12 @@ public class TeamJoinRequestService {
 
         checkTeamLeader(teamId, memberId);
 
-        TeamJoinRequest request = teamJoinRequestRepository.findByTeam_IdAndRequester_IdAndStatus(teamId, reqId, JoinStatus.PENDING)
+        TeamJoinRequest request = teamJoinRequestRepository.findByIdAndTeam_IdAndStatus(reqId, teamId, JoinStatus.PENDING)
                 .orElseThrow(() -> new EntityNotFoundException("해당 요청이 없습니다. "));
 
-        request.reject();
+        // 삭제 처리 말고 걍 삭제
+        teamJoinRequestRepository.delete(request);
+        //request.reject();
     }
 
     @Transactional
