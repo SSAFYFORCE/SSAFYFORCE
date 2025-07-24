@@ -191,7 +191,7 @@ import { useAuthStore } from '@/stores/auth'
 import { memberApi } from '@/api/memberApi'
 import { solvedProblemApi } from '@/api/solvedProblemApi'
 import { uploadProfileImage, deleteProfileImage } from '@/api/memberApi'
-
+import defaultProfileImage from '@/mockdata/default_profile.png'
 const router = useRouter()
 const authStore = useAuthStore()
 const route = useRoute()
@@ -211,7 +211,7 @@ const isFirstLoad = ref(true)
 const isSyncing = ref(false)
 const syncResult = ref('')
 const syncResultClass = ref('')
-const DEFAULT_PROFILE_IMAGE = '/src/mockdata/default_profile.png'
+const DEFAULT_PROFILE_IMAGE = defaultProfileImage
 // 로그인 상태 확인
 const isLoggedIn = ref(false)
 // 동기화 버튼 활성화 여부 체크
