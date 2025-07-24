@@ -69,6 +69,26 @@
                 <span class="sync-result-text">{{ syncResult }}</span>
               </div>
             </div>
+            <div class="external-links">
+              <a
+                :href="`https://solved.ac/profile/${profile.solvedAcId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="external-link solved-ac-link"
+              >
+                <font-awesome-icon :icon="['fas', 'link']" />
+                solved.ac
+              </a>
+              <a
+                :href="`https://www.acmicpc.net/user/${profile.solvedAcId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="external-link baekjoon-link"
+              >
+                <font-awesome-icon :icon="['fas', 'link']" />
+                백준
+              </a>
+            </div>
           </div>
 
           <!-- 소속 팀 정보 -->
@@ -191,7 +211,7 @@ import { useAuthStore } from '@/stores/auth'
 import { memberApi } from '@/api/memberApi'
 import { solvedProblemApi } from '@/api/solvedProblemApi'
 import { uploadProfileImage, deleteProfileImage } from '@/api/memberApi'
-
+import defaultProfileImage from '@/mockdata/default_profile.png'
 const router = useRouter()
 const authStore = useAuthStore()
 const route = useRoute()
@@ -211,7 +231,7 @@ const isFirstLoad = ref(true)
 const isSyncing = ref(false)
 const syncResult = ref('')
 const syncResultClass = ref('')
-const DEFAULT_PROFILE_IMAGE = '/src/mockdata/default_profile.png'
+const DEFAULT_PROFILE_IMAGE = defaultProfileImage
 // 로그인 상태 확인
 const isLoggedIn = ref(false)
 // 동기화 버튼 활성화 여부 체크
@@ -954,8 +974,8 @@ async function handleImageDelete() {
 .problem-item:hover {
   background-color: #f8f9fa;
   border-color: #dee2e6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .problem-tier-badge {
@@ -991,8 +1011,9 @@ async function handleImageDelete() {
 }
 
 .problem-title {
-  color: #333;
-  font-size: 0.9rem;
+  color: #000000;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .problem-meta {
@@ -1065,6 +1086,26 @@ async function handleImageDelete() {
   animation: fa-spin 1s infinite linear;
 }
 
+/* 데스크톱에서만 sticky 적용 */
+@media (min-width: 1025px) {
+  .profile-card {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+/* 모바일에서는 sticky 제거 */
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'profile-card'
+      'recent-problems';
+  }
+  .profile-card {
+    position: static; /* sticky 제거 */
+  }
+}
 @keyframes fa-spin {
   0% {
     transform: rotate(0deg);
@@ -1180,5 +1221,69 @@ async function handleImageDelete() {
 }
 .hidden {
   display: none;
+}
+/* 외부 링크 버튼 스타일 */
+.external-links {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.external-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.solved-ac-link {
+  background-color: #17ce3a;
+  color: white;
+  border-color: #17ce3a;
+}
+
+.solved-ac-link:hover {
+  background-color: #14b532;
+  border-color: #14b532;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(23, 206, 58, 0.3);
+}
+
+.baekjoon-link {
+  background-color: #0076c0;
+  color: white;
+  border-color: #0076c0;
+}
+
+.baekjoon-link:hover {
+  background-color: #005a91;
+  border-color: #005a91;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 118, 192, 0.3);
+}
+
+.external-link:active {
+  transform: translateY(0);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .external-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .external-link {
+    width: 100%;
+  }
 }
 </style>

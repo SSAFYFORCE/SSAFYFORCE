@@ -44,7 +44,12 @@ public class SecurityConfig {
                                 "/api/v1/teams",
                                 "/api/v1/teams/*/join"
                         ).authenticated()
-
+                        .requestMatchers("/api/v1/members/me").authenticated()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/members/*/teams",
+                                "/api/v1/members/*"
+                        ).permitAll()
                         // 인증이 필요없는 공개 API 엔드포인트
                         .requestMatchers(
                                 "/api/v1/auth/sign-in",
@@ -74,6 +79,7 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
                         // 그 외 모든 요청은 인증 필요
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
