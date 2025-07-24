@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps, onMounted } from 'vue' // defineProps 임포트 추가
+import { ref, defineEmits, defineProps, onMounted } from 'vue'
 
 const props = defineProps({
   // 이 prop이 true일 때만 개인/팀 필터를 보여줍니다.
@@ -31,7 +31,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:period', 'update:type']) // update:type 이벤트 추가
+const emit = defineEmits(['update:period', 'update:type'])
 
 // 기간 선택 옵션 정의
 const periodOptions = [
@@ -40,8 +40,8 @@ const periodOptions = [
   { label: '월간', value: 'monthly' },
 ]
 
-// 선택된 기간 상태 (기본값 'daily')
-const selectedPeriod = ref('daily')
+// 선택된 기간 상태 (기본값을 'monthly'로 변경)
+const selectedPeriod = ref('monthly')
 // 선택된 타입 상태 (showTypeFilter가 true일 때만 의미 있음)
 const selectedType = ref('individual') // 랭킹 페이지 기본값은 '개인'
 
@@ -51,7 +51,7 @@ const selectPeriod = (period) => {
   emit('update:period', selectedPeriod.value)
 }
 
-// 타입 선택 함수 (새로 추가)
+// 타입 선택 함수
 const selectType = (type) => {
   selectedType.value = type
   emit('update:type', selectedType.value)
@@ -59,7 +59,7 @@ const selectType = (type) => {
 
 // 컴포넌트가 마운트될 때 (처음 로드될 때) 초기 값을 부모에게 전달합니다.
 onMounted(() => {
-  selectPeriod(selectedPeriod.value) // 초기 'daily' 값 전달
+  selectPeriod(selectedPeriod.value) // 초기 'monthly' 값 전달
 
   // showTypeFilter가 true일 때만 초기 타입 값도 전달
   if (props.showTypeFilter) {

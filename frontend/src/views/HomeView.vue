@@ -49,8 +49,8 @@ import { ref, onMounted, watch } from 'vue'
 import { rankingApi } from '@/api/rankingApi.js'
 import RankingFilter from '@/components/ranking/RankingFilter.vue'
 import RankingTable from '@/components/ranking/RankingTable.vue'
-// 상태 정의
-const selectedPeriod = ref('DAILY')
+
+const selectedPeriod = ref('MONTHLY')
 const selectedDate = ref(null)
 const memberRankings = ref([])
 const teamRankings = ref([])
@@ -65,7 +65,7 @@ const handlePeriodChange = (period) => {
     weekly: 'WEEKLY',
     monthly: 'MONTHLY',
   }
-  selectedPeriod.value = periodMap[period] || 'DAILY'
+  selectedPeriod.value = periodMap[period] || 'MONTHLY'
   loadAllRankings()
 }
 
