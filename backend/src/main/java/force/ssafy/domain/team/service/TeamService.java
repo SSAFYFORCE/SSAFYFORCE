@@ -10,6 +10,7 @@ import force.ssafy.domain.team.dto.response.TeamResponse;
 import force.ssafy.domain.team.dto.response.TeamSimpleResponse;
 import force.ssafy.domain.team.entity.Team;
 import force.ssafy.domain.team.repository.TeamRepository;
+import force.ssafy.domain.teamJoinRequest.repository.TeamJoinRequestRepository;
 import force.ssafy.domain.teamMember.dto.TeamMemberDto;
 import force.ssafy.domain.teamMember.dto.response.TeamMemberResponse;
 import force.ssafy.domain.teamMember.entity.TeamMember;
@@ -35,6 +36,7 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final MemberRepository memberRepository;
+    private final TeamJoinRequestRepository teamJoinRequestRepository;
 
     /**
      * 해당하는 teamId 에 대한 팀 정보와 소속 팀원들을 가져오는 메서드

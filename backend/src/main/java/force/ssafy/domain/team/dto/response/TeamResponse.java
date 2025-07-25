@@ -1,6 +1,7 @@
 package force.ssafy.domain.team.dto.response;
 
 import force.ssafy.domain.team.entity.Team;
+import force.ssafy.domain.teamJoinRequest.entity.JoinStatus;
 import force.ssafy.domain.teamMember.dto.response.TeamMemberResponse;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class TeamResponse {
     private String name;
     private String description;
     private int memberCount;
-    //    private String leader;
+    private long leaderId;
     private LocalDateTime createdAt;
     private List<TeamMemberResponse> teamMembers;
 
@@ -29,6 +30,7 @@ public class TeamResponse {
                 .name(team.getName())
                 .description(team.getDescription())
                 .memberCount(teamMembers.size())
+                .leaderId(team.getLeaderId())
                 .createdAt(team.getCreatedAt())
                 .teamMembers(teamMembers)
                 .build();
@@ -43,6 +45,7 @@ public class TeamResponse {
                 .name(team.getName())
                 .description(team.getDescription())
                 .memberCount(actualMemberCount)  // 실제 멤버 수 사용
+                .leaderId(team.getLeaderId())
                 .createdAt(team.getCreatedAt())
                 .teamMembers(previewMembers)     // 미리보기 멤버 (최대 3명)
                 .build();
