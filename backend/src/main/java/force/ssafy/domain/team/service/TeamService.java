@@ -168,5 +168,14 @@ public class TeamService {
         // 3. 최종 응답 형태로 포장해서 반환
         return MyTeamListResponse.from(myTeams);
     }
+
+    /**
+     * 팀 해체
+     * @param teamId
+     */
+    @Transactional
+    public void deleteTeam(Long teamId) {
+        teamRepository.deleteById(teamId);
+    }
 }
 
