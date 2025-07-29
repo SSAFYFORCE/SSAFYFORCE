@@ -29,9 +29,6 @@ public class Member implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Column(nullable = false, length = 30, unique = true)
-//    private String nickname;
-
     @Column(nullable = false, length = 100)
     private String password;
 
@@ -65,10 +62,10 @@ public class Member implements UserDetails {
         this.profileImageUrl = imageUrl;
     }
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TeamMember> teamMembers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SolvedProblem> SolvedProblems = new ArrayList<>();
 
     @Builder
