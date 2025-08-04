@@ -1,6 +1,7 @@
 package force.ssafy.domain.team.entity;
 
 import force.ssafy.domain.member.entity.MemberRole;
+import force.ssafy.domain.teamJoinRequest.entity.TeamJoinRequest;
 import force.ssafy.domain.teamMember.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,8 +32,16 @@ public class Team {
     private String profileImage;
 
     @Builder.Default
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team",
+            cascade = CascadeType.ALL,   // REMOVE 포함
+            orphanRemoval = true)
     private List<TeamMember> teamMembers = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "team",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<TeamJoinRequest> joinRequests = new ArrayList<>();
 
     private boolean deleted = false;
 

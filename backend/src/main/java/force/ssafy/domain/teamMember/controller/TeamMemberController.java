@@ -19,6 +19,9 @@ public class TeamMemberController {
 
   private final TeamMemberService teamMemberService;
 
+  /**
+   * 팀 탈퇴
+   */
   @DeleteMapping("/{teamId}/members/{memberId}")
   public ResponseEntity<Void> teamWithdraw(
       @PathVariable Long teamId,
@@ -30,6 +33,9 @@ public class TeamMemberController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * 팀장 위임
+   */
   @PatchMapping("/{teamId}/leader/{newLeaderId}")
   public ResponseEntity<Void> teamLeaderMandate(
       @PathVariable Long teamId,
