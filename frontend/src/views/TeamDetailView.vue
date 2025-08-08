@@ -122,7 +122,27 @@
 
               <div class="member-stats">
                 <!-- 여기에 멤버별 통계 정보가 들어갈 수 있습니다 -->
-                <span class="member-status">활성</span>
+                <span
+                  class="member-status"
+                  :class="{ leader: member.id === team.leaderId }">
+                    {{ member.id === team.leaderId ? '팀장' : '멤버' }}
+                </span>
+
+                  <!-- 팀장 전용 위임 버튼 -->
+                <button
+                  v-if="isLeader && member.id !== team.leaderId"
+                  class="btn-mandate"
+                  :disabled="mandatingId === member.id"
+                  @click.stop="delegateLeader(member)"
+                >
+                  <template v-if="mandatingId === member.id">
+                    <font-awesome-icon :icon="['fas','spinner']" spin />
+                  </template>
+                  <template v-else>
+                    <font-awesome-icon :icon="['fas','crown']" /> 팀장 위임
+                  </template>
+                </button>
+
               </div>
             </div>
           </div>
@@ -205,6 +225,39 @@
             </div>
           </div>
         </div>
+
+        <!-- 팀 탈퇴 / 삭제 버튼 -->
+        <div v-if="isJoined" class="leave-team-section">
+          <button
+            class="btn btn-danger"
+            :disabled="(isLeader && !isSoloLeader) || leavingTeam"
+            @click="!(isLeader && !isSoloLeader) && confirmLeave()"
+          >
+            <!-- 진행 중 -->
+            <template v-if="leavingTeam">
+              <font-awesome-icon :icon="['fas','spinner']" spin /> 처리 중...
+            </template>
+
+            <!-- 리더 + 다른 멤버 존재 → 위임 안내 -->
+            <template v-else-if="isLeader && !isSoloLeader">
+              <font-awesome-icon :icon="['fas','crown']" />
+              팀장 위임 후 탈퇴 가능
+            </template>
+
+            <!-- 리더 혼자 → 팀 삭제 -->
+            <template v-else-if="isSoloLeader">
+              <font-awesome-icon :icon="['fas','trash-alt']" />
+              팀 삭제
+            </template>
+
+            <!-- 일반 팀원 → 팀 탈퇴 -->
+            <template v-else>
+              <font-awesome-icon :icon="['fas','sign-out-alt']" />
+              팀 탈퇴
+            </template>
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
@@ -234,6 +287,48 @@ const joiningTeam = ref(false)
 
 const pendingHover = ref(false)
 
+const leavingTeam = ref(false)
+
+const mandatingId = ref(null)
+
+// 팀장 위임
+const delegateLeader = async (member) => {
+  if (!confirm(`'${member.name}' 님에게 팀장을 위임하시겠습니까?`)) return
+
+  try {
+    mandatingId.value = member.id
+    await teamApi.mandateLeader(teamId.value, member.id)
+    alert('팀장 위임이 완료되었습니다.')
+    await loadTeamDetail()     // 새 리더 반영
+  } catch (e) {
+    console.error('[MANDATE] 실패', e)
+    alert(e.response?.data?.message || '팀장 위임에 실패했습니다.')
+  } finally {
+    mandatingId.value = null
+  }
+}
+
+// 팀 탈퇴
+const confirmLeave = async () => {
+  // 안전장치
+  if (!confirm('정말로 이 팀을 탈퇴하시겠습니까?')) return
+
+  try {
+    leavingTeam.value = true
+    await teamApi.withdraw(teamId.value, authStore.user.memberId)
+    alert('팀에서 탈퇴했습니다.')
+
+    // 내 팀 목록 캐시 갱신 등 필요하면 여기에
+    router.push('/teams')          // 팀 목록 페이지로 이동
+  } catch (e) {
+    console.error('[LEAVE] 실패', e)
+    alert(e.response?.data?.message || '팀 탈퇴에 실패했습니다.')
+  } finally {
+    leavingTeam.value = false
+  }
+}
+
+
 // 내 가입 요청 취소
 const cancelMyRequest = async () => {
   try {
@@ -262,6 +357,12 @@ const isJoined = computed(() => {
   // 백엔드 API 응답에서 nickname은 solvedAcId를 의미
   return team.value.teamMembers.some((member) => member.nickname === authStore.user.solvedAcId)
 })
+
+// ❶ 리더 혼자인지 판별
+const hasOtherMembers = computed(() =>
+  team.value ? team.value.memberCount > 1 : false
+)
+const isSoloLeader   = computed(() => isLeader.value && !hasOtherMembers.value)
 
 // 팀 상세 정보 로드
 const loadTeamDetail = async () => {
@@ -651,6 +752,9 @@ const joinStatus = computed(() => {
   font-weight: 500;
 }
 
+.member-status.leader   { background:#ff9800; }   /* 팀장용 – 주황 */
+
+
 /* 팀 활동 섹션 */
 .team-activity-section {
   background: white;
@@ -741,7 +845,7 @@ const joinStatus = computed(() => {
 }
 
 .pending-badge:hover{
-  background:#f8d7da;color:#721c24;         /* hover → 붉은 톤 */
+  background:#f8d7da;color:#721c24;       
 }
 .pending-badge:disabled{opacity:.6;cursor:not-allowed}
 
@@ -835,12 +939,49 @@ const joinStatus = computed(() => {
   white-space: nowrap;        /* 줄바꿈 방지 → “X 거절” */
 }
 
+.btn-danger {
+  background:#dc3545;
+  color:#fff;
+}
+.btn-danger:hover:not(:disabled){
+  background:#c82333;
+  transform:translateY(-1px);
+}
+.leave-team-section{
+  margin-top:2rem;
+  text-align:center;
+}
+
 
 .btn-approve { background: #28a745; color: #fff; }
 .btn-reject  { background: #dc3545; color: #fff; }
 
 .btn-approve:hover { background: #218838; }
 .btn-reject:hover  { background: #c82333; }
+.btn-mandate{
+  margin-left:.5rem;
+  padding: 0.37rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border:none;
+  border-radius: 20px;
+  background:#ffc107;      /* 호박색 */
+  color:#212529;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:.25rem;
+}
+
+
+.btn-mandate:hover:not(:disabled){
+  background:#e0a800;
+  transform:translateY(-1px);
+}
+.btn-mandate:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
 
 
 </style>
