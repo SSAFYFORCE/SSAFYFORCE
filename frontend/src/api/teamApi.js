@@ -30,5 +30,11 @@ export const teamApi = {
   /** 내 팀 목록 조회 */
   getMyTeams: () => api.get('/teams/me'),
   /** 내가 가입 신청한 팀 조회 */
-  getmyTeamJoinRequestList: () => api.get('/teams/join-requests/me')
+  getmyTeamJoinRequestList: () => api.get('/teams/join-requests/me'),
+  /** 팀 탈퇴 */
+  withdraw: (teamId, memberId) =>
+    api.delete(`/teams/${teamId}/members/${memberId}`),
+  /** 팀장 위임 */
+  mandateLeader: (teamId, newLeaderId) =>
+    api.patch(`/teams/${teamId}/leader/${newLeaderId}`),
 }

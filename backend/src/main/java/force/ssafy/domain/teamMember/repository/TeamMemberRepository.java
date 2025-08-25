@@ -110,5 +110,17 @@ public class TeamMemberRepository {
                 .orElse(null);
     }
 
+    @Transactional
+    public void delete(TeamMember teamMember) {
+        em.remove(teamMember);
+    }
+
+    public long countByTeamId(Long teamId) {
+        return em.createQuery(
+                "SELECT COUNT(tm) FROM TeamMember tm WHERE tm.team.id = :teamId",
+                Long.class)
+            .setParameter("teamId", teamId)
+            .getSingleResult();   // 반환 타입은 Long → auto-unboxing
+    }
 }
 
