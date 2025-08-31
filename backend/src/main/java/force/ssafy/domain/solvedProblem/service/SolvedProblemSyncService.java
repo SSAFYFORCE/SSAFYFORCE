@@ -108,7 +108,7 @@ public class SolvedProblemSyncService {
 					.doOnNext(problems ->
 						log.info("Lambda 응답 수신 - solvedAcId : {}, 문제 수 : {}", solvedAcId, problems.size()))
 					.flatMap(problems -> processSolvedProblemsAsync(member, problems))
-					.flatMap(savedCount -> updateSyncTimeAsync(member, savedCount))
+					.flatMap(savedCount -> updateSyncTimeWithFreshMember(member.getId(), savedCount))
 					.doOnSuccess(result ->
 						log.info("비동기 동기화 성공 - 저장된 문제 수 : {}, 사용자: {}",
 							result.resultCount(), solvedAcId));
@@ -183,6 +183,15 @@ public class SolvedProblemSyncService {
 	private Mono<SyncResultResponse> updateSyncTimeAsync(Member member, int savedCount) {
 		return Mono.fromCallable(() -> {
 			member.updateLastProblemSyncTime(LocalDateTime.now());
+			return new SyncResultResponse(savedCount);
+		}).subscribeOn(Schedulers.boundedElastic());
+	}
+	private Mono<SyncResultResponse> updateSyncTimeWithFreshMember(Long memberId, int savedCount) {
+		return Mono.fromCallable(()->{
+			Member freshMember = memberRepository.findById(memberId)
+				.orElseThrow(()->new EntityNotFoundException("회원을 찾을 수 없습니다."));
+			freshMember.updateLastProblemSyncTime(LocalDateTime.now());
+			memberRepository.save(freshMember);
 			return new SyncResultResponse(savedCount);
 		}).subscribeOn(Schedulers.boundedElastic());
 	}
