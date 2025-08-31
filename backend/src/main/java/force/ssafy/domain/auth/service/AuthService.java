@@ -9,6 +9,7 @@ import force.ssafy.domain.member.entity.Member;
 import force.ssafy.domain.member.exception.DuplicateSolvedAcIdException;
 import force.ssafy.domain.member.exception.MemberNotFoundException;
 import force.ssafy.domain.member.repository.MemberRepository;
+import force.ssafy.domain.solvedProblem.service.SolvedProblemSyncService;
 import force.ssafy.domain.solvedac.entity.VerificationCode;
 import force.ssafy.domain.solvedac.repository.VerificationCodeRepository;
 import force.ssafy.domain.solvedac.service.SolvedAcService;
@@ -32,7 +33,6 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final SolvedAcService solvedAcService;
     private final VerificationCodeRepository verificationCodeRepository;
-
     /**
      * 회원가입 처리
      */
@@ -72,7 +72,6 @@ public class AuthService {
 
         // 회원가입 완료 후 인증 코드 삭제
         solvedAcService.deleteVerificationCode(signUpDto.getSolvedAcId());
-
         return savedMember;
     }
 

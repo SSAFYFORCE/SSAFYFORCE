@@ -8,6 +8,7 @@ import force.ssafy.domain.auth.exception.AuthenticationException;
 import force.ssafy.domain.auth.service.AuthService;
 import force.ssafy.domain.member.dto.response.MemberDto;
 import force.ssafy.domain.member.entity.Member;
+import force.ssafy.domain.solvedProblem.service.SolvedProblemSyncService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final SolvedProblemSyncService solvedProblemSyncService;
 
     /**
      * 로그인 API
@@ -47,6 +49,7 @@ public class AuthController {
                 .createdAt(member.getCreatedAt())
                 .solvedAcId(member.getSolvedAcId())
                 .build();
+        solvedProblemSyncService.syncSolvedProblems(signUpDto.getSolvedAcId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(memberDto);
     }
