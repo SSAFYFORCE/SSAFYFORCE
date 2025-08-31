@@ -9,6 +9,8 @@ import force.ssafy.global.util.DateUtils;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -52,5 +54,16 @@ public class SolvedProblemController {
     public ResponseEntity<SyncResultResponse> syncSolvedProblems(@PathVariable("solvedAcId") String solvedAcId) {
         SyncResultResponse syncResultResponse = solvedProblemSyncService.syncSolvedProblems(solvedAcId);
         return ResponseEntity.ok(syncResultResponse);
+    }
+
+    @PostMapping("/sync-async/{solvedAcId}")
+    public Mono<ResponseEntity<SyncResultResponse>> syncSolvedProblemsAsync(@PathVariable("solvedAcId") String solvedAcId) {
+        log.info("비동기 동기화 요청 - solvedAcId: {}", solvedAcId);
+        return solvedProblemSyncService.syncSolvedProblemsAsync(solvedAcId)
+            .map(ResponseEntity::ok)
+            .doOnSuccess(response ->
+                log.info("비동기 동기화 요청 완료 - solvedAcId: {}", solvedAcId))
+            .doOnError(error ->
+                log.error("비동기 동기화 요청 실패 - solvedAcId: {}, error: {}", solvedAcId, error.getMessage()));
     }
 }
