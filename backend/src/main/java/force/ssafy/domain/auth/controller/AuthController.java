@@ -49,7 +49,7 @@ public class AuthController {
                 .createdAt(member.getCreatedAt())
                 .solvedAcId(member.getSolvedAcId())
                 .build();
-        solvedProblemSyncService.syncSolvedProblems(signUpDto.getSolvedAcId());
+        solvedProblemSyncService.syncSolvedProblemsAsync(signUpDto.getSolvedAcId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(memberDto);
     }
