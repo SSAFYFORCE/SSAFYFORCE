@@ -21,7 +21,7 @@ export const solvedProblemApi = {
   syncSolvedProblems(solvedAcId) {
     try {
       return api.post(
-        `/solved-problems/sync/${solvedAcId}`,
+        `/solved-problems/sync-async/${solvedAcId}`,
         {},
         {
           timeout: 120000, // 2분 (120초) 타임아웃
